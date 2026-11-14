@@ -1,0 +1,96 @@
+/*
+ * Compatibilidade com navegadores mais antigos.
+ *
+ * - color-mix(): Chrome 111+, Safari 16.2+, Firefox 113+. Onde não existe, a
+ *   declaração é descartada; aqui ficam alternativas com cores sólidas ou com
+ *   os tons translúcidos que ui/phenotype.ts calcula em hsla().
+ * - mask-*: Safari < 15.4 só entende com prefixo -webkit-.
+ */
+
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .nav,
+  [data-ph-nav='dock'] .nav,
+  .drift-pill {
+    background: var(--bg-a85, var(--bg));
+  }
+  @media (max-width: 860px) {
+    .nav-links {
+      background: var(--bg);
+    }
+  }
+  .panel-vote::before,
+  .card:hover::before {
+    background: var(--surface);
+  }
+  .ind.current {
+    background: var(--accent-a12);
+  }
+  .chip {
+    border-color: var(--line-strong);
+  }
+  [data-ph-chip='filled'] .chip {
+    background: var(--accent-a12);
+  }
+  .section-head h2,
+  .contact h2,
+  .panel-vote h3 {
+    text-shadow: -1px 0 var(--glow2), 1px 0 var(--glow);
+  }
+  .lede,
+  .about-text,
+  .project-body p,
+  .case-sec p,
+  .case-sec ul {
+    color: var(--text);
+  }
+  .hero::before {
+    background-image:
+      linear-gradient(var(--accent2-a45) 1px, transparent 1px),
+      linear-gradient(90deg, var(--accent2-a45) 1px, transparent 1px);
+  }
+  .cv-portal {
+    background: rgba(0, 0, 0, 0.7);
+  }
+  .deco-tag,
+  .deco-glyphs {
+    color: var(--glow);
+  }
+  .deco-circuit {
+    stroke: var(--glow-soft);
+  }
+}
+
+@supports not (mask-image: none) {
+  .grain {
+    -webkit-mask-image: radial-gradient(1200px 800px at 70% 20%, #000 20%, transparent 80%);
+  }
+  .hero-center .hero-stage {
+    -webkit-mask-image: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 25%, #000 70%);
+  }
+  .hero::before {
+    -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 80%);
+  }
+  [data-ph-bg='rain'] .grain,
+  [data-ph-bg='hex'] .grain {
+    -webkit-mask-composite: source-in;
+    -webkit-mask-repeat: repeat, no-repeat;
+  }
+  [data-ph-bg='rain'] .grain {
+    -webkit-mask-image:
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='320'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='white' stop-opacity='0'/><stop offset='1' stop-color='white'/></linearGradient></defs><g fill='url(%23g)'><rect x='6' y='0' width='1' height='90'/><rect x='38' y='150' width='1' height='120'/><rect x='70' y='40' width='1' height='70'/><rect x='102' y='210' width='1' height='100'/><rect x='22' y='230' width='1' height='60'/><rect x='86' y='110' width='1' height='50'/></g></svg>"),
+      radial-gradient(1200px 800px at 70% 20%, #000 20%, transparent 80%);
+    -webkit-mask-size: 120px 320px, 100% 100%;
+  }
+  [data-ph-bg='hex'] .grain {
+    -webkit-mask-image:
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='69.282'><path d='M20 0L40 11.547V34.641L20 46.188L0 34.641V11.547Z M20 46.188V69.282' fill='none' stroke='white' stroke-width='1'/></svg>"),
+      radial-gradient(1200px 800px at 70% 20%, #000 20%, transparent 80%);
+    -webkit-mask-size: 40px 69.282px, 100% 100%;
+  }
+}
+
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .note-body {
+    color: var(--text);
+  }
+}

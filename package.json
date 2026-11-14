@@ -1,0 +1,29 @@
+{
+  "name": "genetic-dev-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portfólio de desenvolvedor que evolui sozinho com um algoritmo genético (Three.js + TypeScript).",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/copy-mgba.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/copy-mgba.mjs",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "simulate": "tsx scripts/simulate.ts",
+    "cv": "tsx scripts/build-cv.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@thenick775/mgba-wasm": "^2.6.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/three": "^0.187.0",
+    "pdf-lib": "^1.17.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

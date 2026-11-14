@@ -1,0 +1,7 @@
+name = "genetic-dev-portfolio-state"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "GDP_STATE"
+id = "COLE_O_ID_DO_NAMESPACE_AQUI"

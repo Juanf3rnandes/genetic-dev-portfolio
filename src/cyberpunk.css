@@ -1,0 +1,506 @@
+/*
+ * Camada CYBERPUNK — aplicada por cima de styles.css.
+ *
+ * Os genes continuam mandando: --accent/--accent2 viram neon, --radius vira o
+ * tamanho do chanfro dos cantos, --grain controla a grade de fundo e --motion
+ * a velocidade do glitch/scanlines. Para voltar ao visual original, basta
+ * remover o import em main.ts.
+ */
+
+:root {
+  --cut: clamp(6px, calc(var(--radius) * 0.7), 22px);
+  --cut-sm: clamp(4px, calc(var(--radius) * 0.35), 10px);
+  --glow: color-mix(in srgb, var(--accent) 65%, transparent);
+  --glow-soft: color-mix(in srgb, var(--accent) 25%, transparent);
+  --glow2: color-mix(in srgb, var(--accent2) 65%, transparent);
+  --gridline: color-mix(in srgb, var(--accent) 14%, transparent);
+  --text: #e6f1ff;
+  --muted: #7d8aa5;
+  --font-display: 'Chakra Petch', Inter, sans-serif;
+}
+
+::selection {
+  background: var(--accent2);
+  color: var(--bg);
+}
+
+/* scrollbar neon */
+html {
+  scrollbar-color: var(--accent) var(--bg);
+  scrollbar-width: thin;
+}
+
+/* ---------- overlays: scanlines + vinheta CRT ---------- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* grão vira grade de circuito (intensidade = gene grain) */
+.grain {
+  background-image:
+    linear-gradient(var(--gridline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: calc(0.25 + var(--grain) * 0.6);
+}
+
+/* ---------- tipografia ---------- */
+.display,
+.card h3,
+.step h3 {
+  font-family: var(--font-display);
+}
+.display {
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+/* aberração cromática discreta nos títulos */
+.section-head h2,
+.contact h2,
+.panel-vote h3 {
+  text-shadow:
+    -1px 0 color-mix(in srgb, var(--accent2) 55%, transparent),
+    1px 0 color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.display .accent {
+  text-shadow: 0 0 10px var(--glow), 0 0 34px var(--glow-soft);
+}
+.eyebrow {
+  text-shadow: 0 0 8px var(--glow-soft);
+}
+.eyebrow::before {
+  content: '//';
+  opacity: 0.5;
+  margin-right: 0.6em;
+}
+
+/* ---------- glitch nas palavras de destaque ---------- */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow: none;
+}
+.glitch::before {
+  color: var(--accent2);
+  animation: cp-glitch-a calc(4.5s / var(--motion)) steps(1) infinite;
+}
+.glitch::after {
+  color: #fff;
+  mix-blend-mode: overlay;
+  animation: cp-glitch-b calc(4.5s / var(--motion)) steps(1) infinite;
+}
+@keyframes cp-glitch-a {
+  0%, 86%, 100% { opacity: 0; transform: none; clip-path: inset(0); }
+  87% { opacity: 0.9; transform: translate(-4px, 1px); clip-path: inset(8% 0 58% 0); }
+  89% { opacity: 0.9; transform: translate(4px, -1px); clip-path: inset(62% 0 8% 0); }
+  91% { opacity: 0.9; transform: translate(-2px, 0); clip-path: inset(34% 0 38% 0); }
+  93% { opacity: 0; }
+}
+@keyframes cp-glitch-b {
+  0%, 87%, 100% { opacity: 0; transform: none; clip-path: inset(0); }
+  88% { opacity: 1; transform: translate(3px, 0); clip-path: inset(48% 0 30% 0); }
+  90% { opacity: 1; transform: translate(-3px, 1px); clip-path: inset(14% 0 70% 0); }
+  92% { opacity: 0; }
+}
+
+/* ---------- nav ---------- */
+.nav {
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+.nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent2) 80%, transparent);
+  opacity: 0.6;
+}
+.brand-dot {
+  border-radius: 0;
+  transform: rotate(45deg) scale(0.85);
+  box-shadow: 0 0 12px var(--accent), 0 0 28px var(--glow-soft);
+}
+.nav-links a {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+.nav-links a:not(.pill):hover {
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--glow);
+}
+
+/* ---------- formas chanfradas (o gene cardRadius vira o tamanho do corte) ---------- */
+.card,
+.panel,
+.step,
+.btn,
+.nav-links .pill,
+.toast {
+  border-radius: 0;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+.btn,
+.nav-links .pill,
+.toast {
+  --cut: var(--cut-sm);
+}
+
+/* borda que acompanha o chanfro: o fundo do elemento é a borda, ::before é o miolo */
+.card,
+.panel,
+.step,
+.btn-ghost,
+.nav-links .pill {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  background: var(--line-strong);
+}
+.card::before,
+.panel::before,
+.step::before,
+.btn-ghost::before,
+.nav-links .pill::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--surface);
+  clip-path: inherit;
+  transition: background 0.4s ease;
+}
+.btn-ghost::before,
+.nav-links .pill::before {
+  background: var(--bg);
+}
+.panel-vote::before {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 82%, var(--accent2)), var(--surface));
+}
+
+.card {
+  padding: 29px;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.card:hover {
+  background: var(--accent);
+  border-color: transparent;
+}
+.card:hover::before {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 88%, var(--accent)), var(--surface) 60%);
+}
+.card:hover h3 {
+  text-shadow: 0 0 14px var(--glow-soft);
+}
+.card-head span:first-child::before {
+  content: '▸ ';
+  color: var(--accent2);
+}
+.step:hover {
+  background: var(--accent2);
+}
+
+/* ---------- botões ---------- */
+.btn {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  height: 50px;
+}
+.btn-primary:hover {
+  filter: brightness(1.15) saturate(1.2);
+  color: var(--accent-ink);
+}
+.btn-ghost:hover {
+  background: var(--accent);
+  color: var(--accent);
+}
+.nav-links .pill:hover {
+  background: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  text-shadow: 0 0 8px var(--glow);
+}
+.hud::after {
+  content: '▮';
+  animation: cp-blink 1s steps(1) infinite;
+}
+@keyframes cp-blink {
+  50% { opacity: 0; }
+}
+
+/* cantoneiras de mira em volta do organismo */
+.hero-stage::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  pointer-events: none;
+  opacity: 0.7;
+  --c: var(--accent);
+  --l: 22px;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 1px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 1px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 1px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 1px var(--l) no-repeat;
+}
+.hero-center .hero-stage::before {
+  display: none;
+}
+.stage-meta span::before {
+  content: '> ';
+  color: var(--accent);
+}
+
+/* chão em perspectiva estilo synthwave atrás do hero */
+.hero::before {
+  content: '';
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  bottom: -64px;
+  height: calc(42% + 64px);
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--accent2) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent2) 45%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(420px) rotateX(64deg);
+  transform-origin: bottom center;
+  mask-image: linear-gradient(to top, #000 0%, transparent 80%);
+  opacity: 0.35;
+  will-change: transform;
+  animation: cp-grid calc(2.4s / var(--motion)) linear infinite;
+}
+@keyframes cp-grid {
+  from { transform: perspective(420px) rotateX(64deg) translateY(-64px); }
+  to { transform: perspective(420px) rotateX(64deg) translateY(0); }
+}
+
+/* ---------- barras de genes / DNA segmentadas ---------- */
+.dna-bars i.a,
+.gene .bar i,
+.ind .bar i {
+  box-shadow: 0 0 8px var(--glow);
+}
+.dna-bars i.b,
+.gene .bar i.b {
+  box-shadow: 0 0 8px var(--glow2);
+}
+.gene .bar,
+.ind .bar {
+  border-radius: 0;
+}
+.gene .bar i,
+.ind .bar i {
+  background: repeating-linear-gradient(90deg, var(--accent) 0 5px, transparent 5px 7px);
+}
+.gene .bar i.b {
+  background: repeating-linear-gradient(90deg, var(--accent2) 0 5px, transparent 5px 7px);
+}
+.ind {
+  border-radius: 0;
+}
+.ind.current {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.ind .sw {
+  border-radius: 0;
+  transform: rotate(45deg) scale(0.8);
+}
+.genline-bar {
+  box-shadow: 0 0 10px var(--glow2);
+}
+
+/* ---------- chips e afins ---------- */
+.chip {
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line-strong));
+}
+.skill-group h3 {
+  text-shadow: 0 0 8px var(--glow-soft);
+}
+.skill-group h3::before {
+  content: '[ ';
+  color: var(--accent2);
+}
+.skill-group h3::after {
+  content: ' ]';
+  color: var(--accent2);
+}
+
+.toast {
+  border-left: 3px solid var(--accent);
+  text-transform: uppercase;
+}
+.foot {
+  border-top: 0;
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent) top / 100% 1px no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before,
+  .glitch::after,
+  .hud::after,
+  .hero::before {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   PORTFÓLIO: hero com nome, projetos com animação, sobre, selo do GA
+   ===================================================================== */
+.hero-copy h1 {
+  font-size: clamp(40px, calc(3.3vw * var(--type-scale)), 84px);
+}
+
+/* selo discreto: o GA é um extra, não a manchete */
+.ga-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 12px 6px 10px;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.ga-badge:hover {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.ga-badge .ga-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--glow);
+  transform: rotate(45deg);
+  animation: cp-blink 1.6s steps(1) infinite;
+}
+
+/* projetos */
+.project {
+  gap: 20px;
+  min-height: 0;
+}
+.project-viz {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
+}
+.project-viz canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.project-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.project-body p {
+  flex: 0 0 auto;
+}
+.project-points {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text);
+}
+.project-points li::before {
+  content: '▸ ';
+  color: var(--accent);
+}
+.card-head .status:empty {
+  display: none;
+}
+
+/* sobre */
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.about-text {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: calc(16px * var(--type-scale) * 0.92);
+  max-width: 62ch;
+}
+.about-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 20px;
+  margin: 0;
+  font-size: 12px;
+}
+.about-facts dt {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.about-facts dd {
+  margin: 0;
+  color: var(--text);
+}
+@media (max-width: 860px) {
+  .about {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* lab: o bloco do GA fica mais compacto */
+.lab-section {
+  gap: 32px;
+}
+.lab-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 420px;
+}
+.lab-section .section-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}

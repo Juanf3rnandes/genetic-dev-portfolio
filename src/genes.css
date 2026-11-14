@@ -1,0 +1,552 @@
+/*
+ * Variantes ESTRUTURAIS dos componentes.
+ *
+ * ui/phenotype.ts escreve um atributo data-ph-* no <html> para cada gene
+ * estrutural (navStyle, titleFx, cardLayout, skin, stepsLayout, skillsLayout,
+ * bgPattern, divider). Cada bloco abaixo monta uma variante. Ordem importa:
+ * skins vêm antes dos layouts, para que um layout possa desfazer o chanfro.
+ */
+
+/* barra de formação: 0 → 100% conforme o visitante interage */
+.formation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+  transition: opacity 1.2s ease 0.6s;
+}
+.formation i {
+  display: block;
+  height: 100%;
+  transform-origin: left;
+  transform: scaleX(var(--formation, 1));
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  box-shadow: 0 0 10px var(--glow);
+  transition: transform 0.6s ease;
+}
+.formation.done {
+  opacity: 0;
+}
+/* durante a formação as mudanças de cor/raio deslizam em vez de saltar */
+.card,
+.panel,
+.step,
+.btn,
+.chip {
+  transition-property: background, color, border-color, transform;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+}
+/* (content-visibility: auto foi removido: com alturas estimadas, os links do
+   menu caíam no lugar errado. O custo fora da tela já é baixo — animações e
+   WebGL pausam sozinhos quando não estão visíveis.) */
+.card-bar {
+  display: none;
+}
+
+/* =====================================================================
+   NAV — top (padrão) · rail · dock
+   ===================================================================== */
+@media (min-width: 861px) {
+  [data-ph-nav='rail'] body {
+    padding-left: 72px;
+  }
+  [data-ph-nav='rail'] .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 72px;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px 0;
+  }
+  [data-ph-nav='rail'] .nav::after {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, transparent, var(--accent) 20%, var(--accent2) 80%, transparent);
+  }
+  [data-ph-nav='rail'] .brand,
+  [data-ph-nav='rail'] .nav-links {
+    writing-mode: vertical-rl;
+  }
+  [data-ph-nav='rail'] .nav-links {
+    gap: 26px;
+    align-items: center;
+  }
+  [data-ph-nav='rail'] .nav-links .pill {
+    padding: 14px 8px;
+  }
+  [data-ph-nav='rail'] .hero {
+    min-height: 100vh;
+  }
+}
+
+[data-ph-nav='dock'] .nav {
+  position: fixed;
+  top: auto;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  gap: clamp(18px, 3vw, 36px);
+  padding: 10px 10px 10px 18px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+[data-ph-nav='dock'] .nav::after {
+  top: 0;
+  bottom: auto;
+}
+[data-ph-nav='dock'] .brand-meta {
+  display: none;
+}
+[data-ph-nav='dock'] .hero {
+  min-height: 100vh;
+}
+[data-ph-nav='dock'] .toast {
+  bottom: 92px;
+}
+[data-ph-nav='dock'] .foot {
+  padding-bottom: 96px;
+}
+
+/* =====================================================================
+   HERO — split · center (styles.css) · reverse
+   ===================================================================== */
+@media (min-width: 861px) {
+  .hero-reverse .hero-stage {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .hero-reverse .hero-copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .hero-reverse .stage-meta {
+    right: auto;
+    left: 0;
+    text-align: left;
+  }
+}
+
+/* =====================================================================
+   TÍTULOS — glitch (cyberpunk.css) · neon · outline · scramble (effects.ts)
+   ===================================================================== */
+:root:not([data-ph-title='glitch']) .glitch::before,
+:root:not([data-ph-title='glitch']) .glitch::after {
+  display: none;
+}
+
+[data-ph-title='neon'] .display .accent {
+  text-shadow: 0 0 6px var(--glow), 0 0 20px var(--glow), 0 0 52px var(--glow-soft);
+  animation: ph-neon calc(5s / var(--motion)) steps(1) infinite;
+}
+[data-ph-title='neon'] .hero-copy h1 {
+  text-shadow: 0 0 22px var(--glow-soft);
+}
+@keyframes ph-neon {
+  0%, 21%, 25%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.45; }
+}
+
+[data-ph-title='outline'] .hero-copy h1,
+[data-ph-title='outline'] .section-head h2,
+[data-ph-title='outline'] .contact h2 {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--text);
+  text-shadow: none;
+}
+[data-ph-title='outline'] .display .accent {
+  color: var(--accent);
+  -webkit-text-stroke: 0;
+}
+
+/* =====================================================================
+   SKINS de superfícies (cards, painéis, passos)
+   chamfer = padrão de cyberpunk.css · bracket · terminal · holo
+   ===================================================================== */
+
+/* --- bracket: só cantoneiras, fundo translúcido --- */
+[data-ph-skin='bracket'] :is(.card, .panel, .step) {
+  clip-path: none;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 80%, transparent);
+}
+[data-ph-skin='bracket'] :is(.card, .panel, .step)::before {
+  inset: 0;
+  clip-path: none;
+  --c: var(--accent);
+  --l: 18px;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px var(--l) no-repeat;
+}
+[data-ph-skin='bracket'] :is(.card, .step):hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+[data-ph-skin='bracket'] :is(.card, .step):hover::before {
+  --c: var(--accent2);
+}
+
+/* --- terminal: janela com barra de título e três "LEDs" --- */
+[data-ph-skin='terminal'] :is(.card, .panel, .step) {
+  clip-path: none;
+}
+[data-ph-skin='terminal'] :is(.card, .panel, .step)::before {
+  clip-path: none;
+  background:
+    radial-gradient(circle at 16px 14px, var(--accent2) 3px, transparent 3.6px),
+    radial-gradient(circle at 30px 14px, var(--accent) 3px, transparent 3.6px),
+    radial-gradient(circle at 44px 14px, var(--muted) 3px, transparent 3.6px),
+    linear-gradient(color-mix(in srgb, var(--line-strong) 70%, var(--surface)) 0 28px, var(--surface) 28px);
+}
+[data-ph-skin='terminal'] .card {
+  padding-top: 57px;
+}
+[data-ph-skin='terminal'] .panel {
+  padding-top: 60px;
+}
+[data-ph-skin='terminal'] .step {
+  padding-top: 54px;
+}
+[data-ph-skin='terminal'] .card-bar {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 16px;
+  height: 28px;
+  line-height: 28px;
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+[data-ph-skin='terminal'] :is(.card, .step) p {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+}
+[data-ph-skin='terminal'] :is(.btn, .chip) {
+  clip-path: none;
+}
+
+/* --- holo: borda holográfica animada --- */
+[data-ph-skin='holo'] :is(.card, .panel, .step) {
+  background: linear-gradient(115deg, var(--accent), var(--accent2) 25%, var(--line-strong) 50%, var(--accent2) 75%, var(--accent)) 0 0 / 200% 100%;
+}
+[data-ph-skin='holo'] :is(.card, .panel, .step):hover {
+  animation: ph-holo calc(2.5s / var(--motion)) linear infinite;
+}
+[data-ph-skin='holo'] :is(.card, .panel, .step)::before {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--surface) 90%, var(--accent)),
+    var(--surface) 45%,
+    color-mix(in srgb, var(--surface) 88%, var(--accent2))
+  );
+}
+[data-ph-skin='holo'] :is(.card, .step):hover {
+  filter: brightness(1.18);
+}
+@keyframes ph-holo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* =====================================================================
+   PROJETOS — grid (padrão) · list · bento · rail
+   Cada card tem uma animação (.project-viz) e o texto (.project-body).
+   ===================================================================== */
+[data-ph-cards='grid'] .cards {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+[data-ph-cards='list'] .cards {
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+@media (min-width: 861px) {
+  [data-ph-cards='list'] .project {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: 36px;
+    align-items: center;
+  }
+  [data-ph-cards='list'] .project:nth-child(even) .project-viz {
+    order: 2;
+  }
+  [data-ph-cards='list'] .project-viz {
+    aspect-ratio: 16 / 10;
+  }
+
+  /* bento: o projeto mais clicado vira o destaque com animação grande */
+  [data-ph-cards='bento'] .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  [data-ph-cards='bento'] .project:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  [data-ph-cards='bento'] .project:first-child .project-viz {
+    aspect-ratio: 16 / 9;
+  }
+  [data-ph-cards='bento'] .project:first-child h3 {
+    font-size: calc(34px * var(--type-scale));
+  }
+}
+
+[data-ph-cards='rail'] .cards {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(300px, 440px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 0 14px;
+}
+[data-ph-cards='rail'] .project {
+  scroll-snap-align: start;
+}
+
+/* =====================================================================
+   COMO ELE EVOLUI — grid (padrão) · timeline · rail
+   ===================================================================== */
+[data-ph-steps='timeline'] .steps {
+  position: relative;
+  grid-template-columns: 1fr;
+  max-width: 820px;
+  gap: 14px;
+  padding-left: 40px;
+}
+[data-ph-steps='timeline'] .steps::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(var(--accent), var(--accent2));
+  box-shadow: 0 0 8px var(--glow-soft);
+}
+[data-ph-steps='timeline'] .step {
+  clip-path: none;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-areas: 'num title' 'num text';
+  column-gap: 16px;
+}
+[data-ph-steps='timeline'] .step .eyebrow { grid-area: num; }
+[data-ph-steps='timeline'] .step h3 { grid-area: title; }
+[data-ph-steps='timeline'] .step p { grid-area: text; }
+[data-ph-steps='timeline'] .step::after {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 30px;
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px var(--glow);
+}
+[data-ph-steps='timeline'] .step:nth-child(even)::after {
+  background: var(--accent2);
+}
+
+[data-ph-steps='rail'] .steps {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(250px, 290px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 0 14px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2)) 0 50% / 100% 1px no-repeat local;
+}
+[data-ph-steps='rail'] .step {
+  scroll-snap-align: start;
+}
+
+/* =====================================================================
+   STACK — chips (padrão) · terminal · columns
+   ===================================================================== */
+[data-ph-skills='terminal'] .skills {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 24px 26px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-ph-skills='terminal'] .skill-group {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+[data-ph-skills='terminal'] .skill-group h3 {
+  text-transform: lowercase;
+  min-width: 200px;
+}
+[data-ph-skills='terminal'] .skill-group h3::before {
+  content: '$ ls ./';
+}
+[data-ph-skills='terminal'] .skill-group h3::after {
+  content: '';
+}
+[data-ph-skills='terminal'] .skills .chips {
+  gap: 4px 16px;
+}
+[data-ph-skills='terminal'] .skills .chip {
+  border: 0;
+  clip-path: none;
+  padding: 0;
+  font-size: 13px;
+  text-transform: none;
+  color: var(--text);
+}
+[data-ph-skills='terminal'] .skills::after {
+  content: '$ ▮';
+  color: var(--accent);
+  animation: cp-blink 1s steps(1) infinite;
+}
+
+[data-ph-skills='columns'] .skill-group {
+  counter-reset: sk;
+}
+[data-ph-skills='columns'] .skills .chips {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+[data-ph-skills='columns'] .skills .chip {
+  display: flex;
+  gap: 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  clip-path: none;
+  padding: 10px 0;
+  font-size: 13px;
+  text-transform: none;
+  color: var(--text);
+  counter-increment: sk;
+}
+[data-ph-skills='columns'] .skills .chip::before {
+  content: counter(sk, decimal-leading-zero);
+  color: var(--accent);
+}
+
+/* =====================================================================
+   FUNDO — grid (cyberpunk.css) · dots · rain · hex   (intensidade = gene grain)
+   ===================================================================== */
+[data-ph-bg='dots'] .grain {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 45%, transparent) 1.2px, transparent 1.6px);
+  background-size: 22px 22px;
+}
+
+[data-ph-bg='rain'] .grain,
+[data-ph-bg='hex'] .grain {
+  background: var(--accent);
+  mask-composite: intersect;
+  opacity: calc(0.1 + var(--grain) * 0.3);
+}
+[data-ph-bg='rain'] .grain {
+  mask-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='320'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='white' stop-opacity='0'/><stop offset='1' stop-color='white'/></linearGradient></defs><g fill='url(%23g)'><rect x='6' y='0' width='1' height='90'/><rect x='38' y='150' width='1' height='120'/><rect x='70' y='40' width='1' height='70'/><rect x='102' y='210' width='1' height='100'/><rect x='22' y='230' width='1' height='60'/><rect x='86' y='110' width='1' height='50'/></g></svg>"),
+    radial-gradient(1200px 800px at 70% 20%, #000 20%, transparent 80%);
+  mask-size: 120px 320px, 100% 100%;
+  mask-repeat: repeat, no-repeat;
+  mask-position: 0 0, 0 0;
+}
+[data-ph-bg='hex'] .grain {
+  mask-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='69.282'><path d='M20 0L40 11.547V34.641L20 46.188L0 34.641V11.547Z M20 46.188V69.282' fill='none' stroke='white' stroke-width='1'/></svg>"),
+    radial-gradient(1200px 800px at 70% 20%, #000 20%, transparent 80%);
+  mask-size: 40px 69.282px, 100% 100%;
+  mask-repeat: repeat, no-repeat;
+}
+
+/* =====================================================================
+   SEPARADORES — none · ticker (dados vivos do GA) · rule
+   ===================================================================== */
+[data-ph-divider='ticker'] main > .section {
+  padding-top: calc(clamp(56px, 8vw, 96px) + 30px);
+  overflow-x: hidden; /* fallback: Safari < 16 */
+  overflow-x: clip;
+}
+[data-ph-divider='ticker'] main > .section::before {
+  content: attr(data-ticker);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  white-space: nowrap;
+  padding: 7px 0;
+  font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.18em;
+  color: var(--bg);
+  background: var(--accent);
+  will-change: transform;
+  animation: ph-ticker calc(90s / var(--motion)) linear infinite;
+}
+[data-ph-divider='ticker'] main > .section:nth-child(even)::before {
+  background: var(--accent2);
+  animation-direction: reverse;
+}
+@keyframes ph-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+[data-ph-divider='rule'] main > .section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: clamp(20px, 4vw, 56px);
+  right: clamp(20px, 4vw, 56px);
+  height: 8px;
+  background:
+    repeating-linear-gradient(-45deg, var(--accent) 0 5px, transparent 5px 10px) left center / 120px 8px no-repeat,
+    linear-gradient(var(--line-strong), var(--line-strong)) center / 100% 1px no-repeat;
+  opacity: 0.75;
+}
+[data-ph-divider='rule'] main > .section::after {
+  content: 'SEC//' attr(id);
+  position: absolute;
+  top: -5px;
+  right: clamp(20px, 4vw, 56px);
+  padding-left: 10px;
+  background: var(--bg);
+  font: 10px/1.4 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ph-skin='holo'] :is(.card, .panel, .step):hover,
+  [data-ph-title='neon'] .display .accent,
+  [data-ph-divider='ticker'] main > .section::before {
+    animation: none;
+  }
+}

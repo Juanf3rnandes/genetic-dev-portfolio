@@ -1,0 +1,618 @@
+/*
+ * Camada de UI/UX: navegação, leitura, foco de teclado e ajustes de layout.
+ * Carregada por último, depois das variantes do GA.
+ */
+
+/* ---------- leitura ---------- */
+:root {
+  --muted: #8d99b3; /* um pouco mais claro: texto pequeno em mono precisava de contraste */
+}
+/* scanlines mais suaves: o efeito continua, o texto fica mais nítido */
+body::after {
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+}
+.section-head h2,
+.contact h2,
+.panel-vote h3 {
+  text-shadow:
+    -1px 0 color-mix(in srgb, var(--accent2) 30%, transparent),
+    1px 0 color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.lede,
+.about-text,
+.project-body p {
+  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+.lede {
+  max-width: 54ch;
+  line-height: 1.6;
+}
+/* contorno vazado só no destaque do hero: o nome precisa ser legível */
+[data-ph-title='outline'] .hero-copy h1 {
+  color: var(--text);
+  -webkit-text-stroke: 0;
+}
+[data-ph-title='outline'] .hero-copy h1 .accent {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--accent);
+}
+
+/* ---------- âncoras não ficam escondidas atrás do menu fixo ---------- */
+main > section,
+.hero {
+  scroll-margin-top: 84px;
+}
+[data-ph-nav='rail'] main > section,
+[data-ph-nav='dock'] main > section {
+  scroll-margin-top: 24px;
+}
+
+/* ---------- foco de teclado (funciona mesmo com cantos chanfrados) ---------- */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+/* elementos com clip-path cortariam o contorno externo: desenha por dentro */
+:is(.card, .btn, .chip, .nav-links .pill, .arcade-screen):focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: -6px;
+}
+
+.skip {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 10px 14px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.2s ease;
+}
+.skip:focus {
+  transform: none;
+}
+
+/* ---------- navegação ---------- */
+.nav-links a[aria-current='true'] {
+  color: var(--accent);
+}
+.nav-links a:not(.pill) {
+  position: relative;
+}
+.nav-links a[aria-current='true']:not(.pill)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--glow);
+}
+[data-ph-nav='rail'] .nav-links a[aria-current='true']:not(.pill)::after {
+  bottom: 0;
+  top: 0;
+  left: auto;
+  right: -8px;
+  width: 1px;
+  height: auto;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 14px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+.nav-toggle span {
+  width: 14px;
+  height: 8px;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transition: transform 0.2s ease;
+}
+.nav.open .nav-toggle span {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 860px) {
+  .nav-toggle {
+    display: inline-flex;
+  }
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px clamp(20px, 4vw, 56px) 20px;
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    box-shadow: 0 1px 0 var(--line-strong);
+  }
+  .nav.open .nav-links {
+    display: flex;
+  }
+  .nav-links a:not(.pill),
+  .nav-links .pill {
+    display: block;
+    padding: 14px 0;
+    font-size: 14px;
+    box-shadow: inset 0 -1px 0 var(--line);
+    clip-path: none;
+    background: none;
+  }
+  .nav-links .pill::before {
+    display: none;
+  }
+  .nav-links a[aria-current='true']:not(.pill)::after {
+    display: none;
+  }
+  /* dock no celular: o menu abre para cima */
+  [data-ph-nav='dock'] .nav-links {
+    top: auto;
+    bottom: calc(100% + 8px);
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+
+  /* hero no celular: nome e botões primeiro, organismo depois e menor */
+  .hero {
+    padding-top: 32px;
+  }
+  .hero-stage,
+  .hero-center .hero-stage {
+    order: 1;
+    grid-row: auto;
+    height: 38vh;
+    min-height: 240px;
+  }
+  .hero-center .hero-copy {
+    grid-row: auto;
+  }
+  .hero-copy h1 {
+    font-size: clamp(36px, 10.5vw, 52px);
+  }
+}
+
+/* ---------- hero ---------- */
+.hud .avail {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3dff7a;
+  box-shadow: 0 0 10px #3dff7a;
+}
+.hud::before {
+  display: none;
+}
+
+/* ---------- lab: genoma em duas colunas, painel bem mais curto ---------- */
+.genes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  column-gap: 28px;
+  row-gap: 8px;
+}
+.gene {
+  grid-template-columns: 1.1fr 0.9fr 1fr;
+  font-size: 11px;
+}
+
+/* ---------- contato ---------- */
+.contact-mail {
+  font-size: clamp(16px, 2.2vw, 22px);
+  letter-spacing: 0.02em;
+}
+.contact-mail a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+}
+.contact-mail a:hover {
+  color: var(--accent);
+}
+
+/* ---------- cards de projeto: hover mais claro ---------- */
+.project .card-link {
+  margin-top: auto;
+}
+.project:hover .card-link span {
+  display: inline-block;
+  transform: translateX(4px);
+  transition: transform 0.2s ease;
+}
+
+/* nada vaza para os lados: o chão em perspectiva do hero e as faixas
+   passavam da largura da tela e o celular dava zoom-out na página */
+html,
+body {
+  overflow-x: hidden; /* fallback: Safari < 16 */
+  overflow-x: clip;
+}
+.hero {
+  overflow-x: hidden; /* fallback: Safari < 16 */
+  overflow-x: clip;
+}
+@media (max-width: 860px) {
+  .hero-foot .dna {
+    display: none;
+  }
+  .hero-foot {
+    justify-content: center;
+  }
+}
+
+/* layout "center": botões e selo acompanham o texto centralizado */
+.hero-center .hero-copy .actions {
+  justify-content: center;
+}
+.hero-center .hero-copy {
+  align-items: center;
+}
+
+/* ---------- troca de idioma ---------- */
+.lang-toggle {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 6px 8px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.lang-toggle:hover {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+@media (max-width: 860px) {
+  .nav-links .lang-toggle {
+    align-self: flex-start;
+    margin: 12px 0 4px;
+    padding: 8px 12px;
+  }
+}
+
+/* ---------- estudo de caso ---------- */
+body.case-open .hero,
+body.case-open main {
+  display: none;
+}
+.case-view {
+  position: relative;
+  z-index: 1;
+  padding: 40px clamp(20px, 4vw, 56px) 96px;
+}
+.case-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.case-back {
+  align-self: flex-start;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-back:hover {
+  color: var(--accent);
+}
+.case-head {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.case-head h1 {
+  font-size: clamp(40px, calc(4vw * var(--type-scale)), 76px);
+  outline: none;
+}
+.case-head .lede {
+  font-size: calc(17px * var(--type-scale) * 0.9);
+  max-width: 62ch;
+}
+.case-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 24px;
+  margin: 8px 0 0;
+  padding: 18px 0;
+  box-shadow: inset 0 1px 0 var(--line-strong), inset 0 -1px 0 var(--line-strong);
+  font-size: 12px;
+}
+.case-meta dt {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+}
+.case-meta dd {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+/* dt/dd em pares: cada par ocupa uma coluna */
+.case-meta {
+  grid-auto-flow: column;
+  grid-template-rows: auto auto;
+}
+@media (max-width: 860px) {
+  .case-meta {
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-template-columns: 1fr;
+  }
+}
+.case-viz {
+  aspect-ratio: 16 / 8;
+}
+.case-body {
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+.case-sec {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.32fr) 1fr;
+  gap: 12px 40px;
+  align-items: start;
+}
+.case-sec h2 {
+  font-size: clamp(20px, calc(1.6vw * var(--type-scale)), 28px);
+  grid-row: span 20;
+}
+.case-sec p,
+.case-sec ul {
+  grid-column: 2;
+  margin: 0;
+  max-width: 68ch;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+}
+.case-sec .project-points {
+  gap: 10px;
+  font-size: 15px;
+}
+@media (max-width: 860px) {
+  .case-sec {
+    grid-template-columns: 1fr;
+  }
+  .case-sec h2 {
+    grid-row: auto;
+  }
+  .case-sec p,
+  .case-sec ul {
+    grid-column: 1;
+  }
+}
+.case-next {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px 0 0;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: inset 0 1px 0 var(--line-strong);
+}
+.case-next .display {
+  font-size: clamp(28px, calc(2.6vw * var(--type-scale)), 48px);
+}
+.case-next:hover .display {
+  color: var(--accent);
+}
+
+/* painel ?debug */
+.debug-panel {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 90;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #b8ffcf;
+  background: rgba(0, 0, 0, 0.82);
+  box-shadow: inset 0 0 0 1px #2a2e3a;
+  pointer-events: none;
+}
+
+/* ---------- download do currículo (fenda dimensional) ---------- */
+.cv-btn .cv-ico {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.cv-btn:hover .cv-ico {
+  transform: translateY(2px);
+}
+.cv-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--bg) 55%, transparent), color-mix(in srgb, var(--bg) 88%, transparent));
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.cv-portal.on {
+  opacity: 1;
+}
+.cv-portal canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.cv-portal-label {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--glow);
+}
+
+/* dock no celular: o clip-path dos cantos cortava o painel do menu que abre para
+   cima — os links ficavam invisíveis e inclicáveis (achado pelos testes) */
+@media (max-width: 860px) {
+  [data-ph-nav='dock'] .nav {
+    clip-path: none;
+  }
+}
+
+/* ---------- princípios ("como eu penso") ---------- */
+.principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: calc(20px * var(--space, 1));
+}
+.principle {
+  gap: 12px;
+}
+.principle .eyebrow {
+  margin: 0;
+}
+.principle h3 {
+  font-size: calc(21px * var(--type-scale));
+  line-height: 1.15;
+}
+.principle-text {
+  color: var(--text);
+}
+.principle-proof {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  box-shadow: inset 0 1px 0 var(--line-strong);
+}
+.principle-proof .lbl {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.principle-link {
+  text-decoration: none;
+  font-size: 13px;
+}
+
+/* ---------- notas técnicas ---------- */
+.notes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: calc(20px * var(--space, 1));
+}
+.note-card {
+  min-height: 0;
+  gap: 12px;
+}
+.note-card .eyebrow {
+  margin: 0;
+}
+.note-card h3 {
+  font-size: calc(22px * var(--type-scale));
+}
+.note-card p {
+  flex: 0 0 auto;
+}
+.note-card .card-link {
+  margin-top: auto;
+}
+
+.skills-note {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 15px;
+  padding-left: 14px;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* página da nota: leitura confortável */
+body.note-open .hero,
+body.note-open main {
+  display: none;
+}
+.note-inner {
+  max-width: 760px;
+}
+.note-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--text) 86%, var(--muted));
+}
+.note-body h2 {
+  margin-top: 22px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, calc(1.8vw * var(--type-scale)), 30px);
+  line-height: 1.2;
+  color: var(--text);
+}
+.note-body h3 {
+  margin-top: 8px;
+  font-size: 19px;
+  color: var(--text);
+}
+.note-body p,
+.note-body ul,
+.note-body ol {
+  margin: 0;
+}
+.note-body ul,
+.note-body ol {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.note-body li::marker {
+  color: var(--accent);
+}
+.note-body strong {
+  color: var(--text);
+}
+.note-body code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.86em;
+  padding: 1px 6px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.note-body pre {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.note-body pre code {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.note-body blockquote {
+  margin: 0;
+  padding-left: 16px;
+  box-shadow: inset 2px 0 0 var(--accent2);
+  color: var(--muted);
+}
