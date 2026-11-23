@@ -5,9 +5,7 @@
   "description": "Portfólio de desenvolvedor que evolui sozinho com um algoritmo genético (Three.js + TypeScript).",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/copy-mgba.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/copy-mgba.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "simulate": "tsx scripts/simulate.ts",
@@ -15,7 +13,6 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@thenick775/mgba-wasm": "^2.6.0",
     "three": "^0.187.0"
   },
   "devDependencies": {

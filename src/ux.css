@@ -55,7 +55,7 @@ main > section,
   outline-offset: 3px;
 }
 /* elementos com clip-path cortariam o contorno externo: desenha por dentro */
-:is(.card, .btn, .chip, .nav-links .pill, .arcade-screen):focus-visible {
+:is(.card, .btn, .chip, .nav-links .pill):focus-visible {
   outline: 2px solid var(--text);
   outline-offset: -6px;
 }
@@ -460,7 +460,8 @@ body.case-open main {
 .cv-portal-label {
   position: absolute;
   left: 50%;
-  bottom: 12%;
+  bottom: 4%;
+  transition: opacity 0.4s ease;
   transform: translateX(-50%);
   font-size: 12px;
   letter-spacing: 0.16em;

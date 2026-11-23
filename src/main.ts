@@ -2,8 +2,6 @@ import './styles.css';
 import './cyberpunk.css';
 import './genes.css';
 import './genes-extra.css';
-import './arcade.css';
-import { Arcade } from './arcade/arcade';
 import { Evolution, MUTATION_RATE } from './ga/engine';
 import { Drift } from './ga/formation';
 import { driftStep, mulberry32, type Genome } from './ga/genome';
@@ -21,6 +19,7 @@ import { initCases, rerenderCase } from './projects/case';
 import { initNotes, rerenderNote } from './projects/notes';
 import './ux.css';
 import './compat.css';
+import './career.css';
 import { bumpProject, renderDynamic, renderGenome, renderLive, renderStatic, toast } from './ui/render';
 
 // Genes que reorganizam a página inteira: nunca mudam durante o uso (só entre visitas).
@@ -86,14 +85,6 @@ async function boot(): Promise<void> {
       heroStage.style.display = 'none';
     });
 
-  // arcade ASCII: o core só é baixado quando alguém carrega uma ROM
-  const arcadeRoot = document.getElementById('arcade');
-  const arcade = arcadeRoot ? new Arcade(arcadeRoot) : null;
-  const syncArcade = () => {
-    const css = getComputedStyle(document.documentElement);
-    arcade?.applyGenome(shown.asciiStyle, css.getPropertyValue('--accent').trim(), css.getPropertyValue('--bg').trim());
-  };
-  syncArcade();
 
   const onProject = (id: string) => {
     bumpProject(id);
@@ -104,7 +95,8 @@ async function boot(): Promise<void> {
   initCases(onProject);
   initNotes();
   // baixar o currículo é um sinal forte de interesse: conta como contato no fitness
-  initCvDownload(onContact);
+  // as partículas do organismo viram o currículo (ver cv/portal.ts)
+  initCvDownload(onContact, () => organism);
   // 2. deriva: conforme o visitante usa a página, a mutação sobe aos poucos
   const levelToRate = (level: number) => MUTATION_RATE + (1 - MUTATION_RATE) * level;
   const show = (g: Genome, level: number) => {
@@ -113,7 +105,6 @@ async function boot(): Promise<void> {
     applyDeco(g);
     refreshVizPalette();
     organism?.applyGenome(g);
-    syncArcade();
     renderGenome(evo, g, levelToRate(level), level);
   };
   const milestones = new Set<number>();
@@ -145,7 +136,6 @@ async function boot(): Promise<void> {
     renderDynamic(evo, null);
     rerenderCase();
     rerenderNote();
-    arcade?.refreshText();
   });
 
   // 3. fitness "ao vivo" no HUD, para o visitante ver o próprio efeito

@@ -4,11 +4,12 @@ import type { Genome } from '../ga/genome';
 import { applyTitleFx } from './effects';
 
 /** Ordem das seções do <main> por gene sectionOrder. Contato fica sempre por último. */
-// projetos/sobre sempre no topo: o GA varia a ordem, mas a página continua sendo um portfólio
+// carreira primeiro: experiência e projetos sempre no topo, e o "sobre este site" (o GA)
+// sempre no fim. O gene só varia a ordem do miolo.
 const SECTION_ORDER: Record<Genome['sectionOrder'], string[]> = {
-  work: ['projetos', 'principios', 'notas', 'sobre', 'lab', 'arcade'],
-  lab: ['projetos', 'principios', 'sobre', 'notas', 'arcade', 'lab'],
-  stack: ['principios', 'projetos', 'sobre', 'notas', 'lab', 'arcade'],
+  work: ['experiencia', 'projetos', 'sobre', 'notas', 'principios', 'lab'],
+  lab: ['experiencia', 'projetos', 'sobre', 'principios', 'notas', 'lab'],
+  stack: ['experiencia', 'sobre', 'projetos', 'notas', 'principios', 'lab'],
 };
 
 function hsl(h: number, s: number, l: number): string {
@@ -20,18 +21,24 @@ function hsla(h: number, s: number, l: number, a: number): string {
 
 export function applyPhenotype(g: Genome): void {
   const r = document.documentElement.style;
+  // accentMode: duo = dois acentos · mono = só o primário · split = secundário apagado, só em detalhes
+  const h2 = g.accentMode === 'mono' ? g.hue : g.hue2;
+  const s2 = g.accentMode === 'split' ? g.sat * 0.35 : g.sat;
   const accent = hsl(g.hue, g.sat, 0.72);
-  const accent2 = hsl(g.hue2, g.sat, 0.74);
+  const accent2 = hsl(h2, s2, g.accentMode === 'split' ? 0.68 : 0.74);
 
   r.setProperty('--accent', accent);
+  // gene fx: quanto de neon a variante tem. Os glows escalam com ele (0 = sem brilho).
   // versões translúcidas calculadas aqui (em vez de color-mix no CSS): funcionam
   // também em Safari < 16.2 e Firefox < 113
-  r.setProperty('--glow', hsla(g.hue, g.sat, 0.72, 0.65));
-  r.setProperty('--glow-soft', hsla(g.hue, g.sat, 0.72, 0.25));
-  r.setProperty('--glow2', hsla(g.hue2, g.sat, 0.74, 0.65));
-  r.setProperty('--gridline', hsla(g.hue, g.sat, 0.72, 0.14));
+  const fx = g.fx;
+  r.setProperty('--fx', fx.toFixed(3));
+  r.setProperty('--glow', hsla(g.hue, g.sat, 0.72, +(0.08 + 0.75 * fx).toFixed(3)));
+  r.setProperty('--glow-soft', hsla(g.hue, g.sat, 0.72, +(0.02 + 0.3 * fx).toFixed(3)));
+  r.setProperty('--glow2', hsla(h2, s2, 0.74, +(0.08 + 0.75 * fx).toFixed(3)));
+  r.setProperty('--gridline', hsla(g.hue, g.sat, 0.72, 0.1));
   r.setProperty('--accent-a12', hsla(g.hue, g.sat, 0.72, 0.12));
-  r.setProperty('--accent2-a45', hsla(g.hue2, g.sat, 0.74, 0.45));
+  r.setProperty('--accent2-a45', hsla(h2, s2, 0.74, 0.45));
   r.setProperty('--bg-a85', hsla(g.hue, 0.25 * g.bgTint, 0.035 + 0.01 * g.bgTint, 0.85));
   r.setProperty('--accent2', accent2);
   // fundo levemente tingido pelo hue primário (gene bgTint)
@@ -82,6 +89,7 @@ export function applyPhenotype(g: Genome): void {
   ds.phAbout = g.aboutLayout;
   ds.phContact = g.contactLayout;
   ds.phCursor = g.cursorFx;
+  ds.phAccent = g.accentMode;
   r.setProperty('--space', g.spacing.toFixed(3));
 
   // ordem das seções + renumeração dos rótulos "02 —", "03 —"…

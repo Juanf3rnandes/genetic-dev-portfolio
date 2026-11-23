@@ -42,7 +42,8 @@ export interface EvolutionStore {
   save(state: EvolutionState): Promise<void>;
 }
 
-const KEY = 'gdp:evolution:v1';
+// v2: redesign contido (nov/2026). Trocar a chave reinicia as linhagens locais antigas.
+const KEY = 'gdp:evolution:v2';
 
 export class LocalStore implements EvolutionStore {
   readonly label = 'local';

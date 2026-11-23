@@ -1,27 +1,14 @@
 /*
- * Service worker de isolamento cross-origin.
- *
- * O core mGBA usa threads (SharedArrayBuffer), que só existem quando a página
- * é servida com COOP/COEP. GitHub Pages não deixa configurar headers, então
- * este worker os adiciona a cada resposta. Só é registrado quando alguém liga
- * o arcade (ver src/arcade/arcade.ts).
+ * O arcade (que precisava deste service worker de isolamento cross-origin) foi
+ * removido. Este arquivo continua existindo só para desregistrar o worker nos
+ * navegadores que já o instalaram.
  */
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.cache === 'only-if-cached' && req.mode !== 'same-origin') return;
-  event.respondWith(
-    fetch(req)
-      .then((res) => {
-        if (res.status === 0) return res; // resposta opaca: não dá para mexer
-        const headers = new Headers(res.headers);
-        headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
-        headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-        headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
-        return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
-      })
-      .catch(() => Response.error()),
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    self.registration
+      .unregister()
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then((clients) => clients.forEach((c) => c.navigate(c.url))),
   );
 });

@@ -102,6 +102,37 @@ export function generateShape(shape: Shape, n: number, seed = 1): Float32Array {
         }
         break;
       }
+      case 'knot': {
+        // nó toroidal (3,2): um tubo fino que passa por dentro de si mesmo
+        const u = t * Math.PI * 2;
+        const p = 2;
+        const q = 3;
+        const r = 0.62 + 0.24 * Math.cos(q * u);
+        const cx = r * Math.cos(p * u);
+        const cz = r * Math.sin(p * u);
+        const cy = 0.24 * Math.sin(q * u) * 1.6;
+        const a = rnd() * Math.PI * 2;
+        const tube = 0.07 * Math.sqrt(rnd());
+        x = cx + Math.cos(a) * tube;
+        y = cy + Math.sin(a) * tube;
+        z = cz + Math.cos(a + 1.3) * tube;
+        break;
+      }
+      case 'wave': {
+        // superfície ondulada (interferência de duas ondas), vista em diagonal
+        const side = Math.ceil(Math.sqrt(n));
+        const u = ((i % side) / (side - 1)) * 2 - 1;
+        const v = (Math.floor(i / side) / (side - 1)) * 2 - 1;
+        x = u * 1.15;
+        z = v * 1.15;
+        y = 0.16 * Math.sin(u * 5.5) * Math.cos(v * 4.2) + 0.1 * Math.sin(Math.hypot(u, v) * 9);
+        const tilt = 0.6;
+        const y2 = y * Math.cos(tilt) - z * Math.sin(tilt);
+        const z2 = y * Math.sin(tilt) + z * Math.cos(tilt);
+        y = y2;
+        z = z2;
+        break;
+      }
     }
     out[i * 3] = x;
     out[i * 3 + 1] = y;

@@ -34,13 +34,28 @@ uniform float uCursorReact;
 uniform float uPixelRatio;
 uniform float uCount;      // partículas ativas
 uniform float uHalo;       // 0 = núcleo, 1 = halo (camada de glow)
+// transformação no currículo (ver transformToCv): cada vértice sai da posição VIVA
+uniform float uCvOn;
+uniform float uCvT;        // segundos desde o início
+uniform vec4 uCvTime;      // início da ida, duração, início da volta, duração da volta
+uniform float uCvSpread;   // atraso máximo
+uniform float uCvSize;     // tamanho do ponto na folha (px)
+uniform float uPaper;      // 0→1 enquanto o papel aparece por baixo
+uniform vec4 uRemap;       // canvas em tela cheia: xy escala, zw deslocamento (em clip)
 
 attribute vec3 positionB;
 attribute float seed;
+attribute vec2 aTarget;    // ponto da folha, em NDC da tela cheia
+attribute vec3 aTCol;      // cor da "tinta" nesse ponto
+attribute vec2 aCv;        // x = atraso, y = curvatura do arco
 
 varying float vDepth;
 varying float vMix;
 varying float vAlpha;
+varying float vCv;
+varying vec3 vTCol;
+
+float easeInOut(float x) { return x < 0.5 ? 4.0 * x * x * x : 1.0 - pow(-2.0 * x + 2.0, 3.0) / 2.0; }
 
 // simplex noise 3D (Ashima / Stefan Gustavson)
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -96,11 +111,35 @@ void main(){
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
+  // canvas expandido para a tela cheia: reposiciona para o organismo não sair do lugar
+  gl_Position.xy = gl_Position.xy * uRemap.xy + gl_Position.w * uRemap.zw;
   vDepth = clamp((-mv.z - 2.0) / 3.0, 0.0, 1.0);
   float size = uPointSize * (0.6 + seed * 0.8) * uPixelRatio;
   size *= mix(1.0, ${HALO_SIZE.toFixed(1)}, uHalo);
   gl_PointSize = size * (5.2 / -mv.z) * isOn;
   vAlpha = isOn * (0.5 + 0.5 * (1.0 - vDepth));
+
+  vCv = 0.0;
+  vTCol = aTCol;
+  if (uCvOn > 0.5) {
+    // ida: da posição atual (ainda girando, com ruído) até a folha; volta: o inverso,
+    // pousando de novo na forma em movimento. Topo da folha chega primeiro.
+    float go = easeInOut(clamp((uCvT - uCvTime.x - aCv.x) / uCvTime.y, 0.0, 1.0));
+    float back = easeInOut(clamp((uCvT - uCvTime.z - (uCvSpread - aCv.x) * 0.8) / uCvTime.w, 0.0, 1.0));
+    float k = go * (1.0 - back);
+    vec2 from = gl_Position.xy / gl_Position.w;
+    vec2 dir = aTarget - from;
+    vec2 perp = vec2(-dir.y, dir.x);
+    float arc = sin(3.14159265 * k) * aCv.y * (back > 0.0 ? -0.7 : 1.0);
+    vec2 flutter = vec2(sin(uCvT * 4.0 + seed * 40.0), cos(uCvT * 3.3 + seed * 31.0)) * 0.006 * sin(3.14159265 * k);
+    vec2 ndc = mix(from, aTarget, k) + perp * arc + flutter;
+    gl_Position = vec4(ndc * gl_Position.w, gl_Position.z * (1.0 - k), gl_Position.w);
+    gl_PointSize = mix(gl_PointSize, uCvSize * uPixelRatio * (0.8 + seed * 0.4), k) * isOn;
+    vCv = k;
+    // halo some na viagem (na folha só o núcleo, nítido); ao chegar, cede lugar ao papel
+    vAlpha *= mix(1.0, 1.0 - k, uHalo);
+    vAlpha = mix(vAlpha, isOn * (1.0 - 0.9 * uPaper), smoothstep(0.85, 1.0, k) * (1.0 - uHalo));
+  }
 }
 `;
 
@@ -112,11 +151,14 @@ uniform float uBloom;
 varying float vDepth;
 varying float vMix;
 varying float vAlpha;
+varying float vCv;
+varying vec3 vTCol;
 void main(){
   vec2 c = gl_PointCoord - 0.5;
   float r = length(c);
   if (r > 0.5) discard;
   vec3 col = mix(uColorB, uColorA, smoothstep(0.2, 0.8, vMix + (1.0 - vDepth) * 0.3));
+  col = mix(col, vTCol, smoothstep(0.3, 1.0, vCv));
   if (uHalo > 0.5) {
     // halo: gaussiano largo e fraco, intensidade = gene bloom
     float g = exp(-r * r * 14.0);
@@ -183,11 +225,14 @@ export class Organism {
     this.geometry.setAttribute('position', this.posA);
     this.geometry.setAttribute('positionB', this.posB);
     this.geometry.setAttribute('seed', new THREE.BufferAttribute(seeds, 1));
+    this.geometry.setAttribute('aTarget', new THREE.BufferAttribute(new Float32Array(MAX_PARTICLES * 2), 2));
+    this.geometry.setAttribute('aTCol', new THREE.BufferAttribute(new Float32Array(MAX_PARTICLES * 3), 3));
+    this.geometry.setAttribute('aCv', new THREE.BufferAttribute(new Float32Array(MAX_PARTICLES * 2), 2));
     this.geometry.setDrawRange(0, genome.particles);
     this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 3);
 
     this.haloGeometry = new THREE.BufferGeometry();
-    for (const name of ['position', 'positionB', 'seed']) this.haloGeometry.setAttribute(name, this.geometry.getAttribute(name));
+    for (const name of ['position', 'positionB', 'seed', 'aTarget', 'aTCol', 'aCv']) this.haloGeometry.setAttribute(name, this.geometry.getAttribute(name));
     const haloIndex = new Uint16Array(Math.ceil(MAX_PARTICLES / HALO_STRIDE));
     for (let i = 0; i < haloIndex.length; i++) haloIndex[i] = i * HALO_STRIDE;
     this.haloGeometry.setIndex(new THREE.BufferAttribute(haloIndex, 1));
@@ -215,6 +260,13 @@ export class Organism {
         uColorB: { value: this.colorB },
         uHalo: { value: 0 },
         uBloom: { value: genome.bloom },
+        uCvOn: { value: 0 },
+        uCvT: { value: 0 },
+        uCvTime: { value: new THREE.Vector4(0, 1, 9, 1) },
+        uCvSpread: { value: 0 },
+        uCvSize: { value: 2 },
+        uPaper: { value: 0 },
+        uRemap: { value: new THREE.Vector4(1, 1, 0, 0) },
       },
     });
     this.haloMaterial = this.material.clone();
@@ -223,6 +275,7 @@ export class Organism {
     this.haloMaterial.uniforms.uCursor.value = this.cursor;
     this.haloMaterial.uniforms.uColorA.value = this.colorA;
     this.haloMaterial.uniforms.uColorB.value = this.colorB;
+    for (const k of ['uCvTime', 'uRemap'] as const) this.haloMaterial.uniforms[k].value = this.material.uniforms[k].value;
 
     this.halo = new THREE.Points(this.haloGeometry, this.haloMaterial);
     this.halo.frustumCulled = false;
@@ -301,6 +354,89 @@ export class Organism {
     }
   }
 
+  /** Quantos vértices o organismo tem (destinos devem cobrir todos). */
+  readonly capacity = MAX_PARTICLES;
+
+  private cv: {
+    start: number;
+    paper: (t: number) => number;
+    parent: Node;
+    next: Node | null;
+    style: string;
+  } | null = null;
+
+  /**
+   * Transforma o organismo no currículo: cada vértice voa da sua posição atual
+   * (com rotação, ruído e respiração ainda rodando) até `targets` (pixels da
+   * janela). O canvas sai do hero e ocupa a tela inteira durante a animação;
+   * uRemap compensa a projeção para a forma não "pular". Retorna false se o
+   * hero não está visível (quem chama usa outra animação).
+   */
+  transformToCv(o: {
+    targets: Float32Array;
+    colors: Float32Array;
+    delays: Float32Array;
+    swirl: Float32Array;
+    time: [formStart: number, formDur: number, backStart: number, backDur: number];
+    spread: number;
+    size: number;
+    paper: (t: number) => number;
+    zIndex: number;
+  }): boolean {
+    const r = this.canvas.getBoundingClientRect();
+    const VW = window.innerWidth;
+    const VH = window.innerHeight;
+    const visible = r.bottom > 40 && r.top < VH - 40 && r.width > 10 && this.canvas.offsetParent !== null;
+    if (!visible || this.cv) return false;
+
+    // destinos em NDC da tela cheia
+    const tgt = this.geometry.getAttribute('aTarget') as THREE.BufferAttribute;
+    const tc = this.geometry.getAttribute('aTCol') as THREE.BufferAttribute;
+    const cvA = this.geometry.getAttribute('aCv') as THREE.BufferAttribute;
+    const ta = tgt.array as Float32Array;
+    for (let i = 0; i < MAX_PARTICLES; i++) {
+      ta[i * 2] = (o.targets[i * 2] / VW) * 2 - 1;
+      ta[i * 2 + 1] = 1 - (o.targets[i * 2 + 1] / VH) * 2;
+      (cvA.array as Float32Array)[i * 2] = o.delays[i];
+      (cvA.array as Float32Array)[i * 2 + 1] = o.swirl[i];
+    }
+    (tc.array as Float32Array).set(o.colors.subarray(0, MAX_PARTICLES * 3));
+    tgt.needsUpdate = tc.needsUpdate = cvA.needsUpdate = true;
+
+    // canvas vai para o <body> (fora de máscaras/opacidade do hero) em tela cheia
+    this.cv = { start: performance.now(), paper: o.paper, parent: this.canvas.parentNode!, next: this.canvas.nextSibling, style: this.canvas.getAttribute('style') ?? '' };
+    document.body.appendChild(this.canvas);
+    this.canvas.style.cssText = `position:fixed;inset:0;width:100vw;height:100vh;z-index:${o.zIndex};pointer-events:none;`;
+    this.renderer.setSize(VW, VH, false);
+    // a câmera mantém o aspecto antigo; o remap leva o "quadro" antigo para o retângulo do hero
+    const remap = this.material.uniforms.uRemap.value as THREE.Vector4;
+    remap.set(r.width / VW, r.height / VH, ((r.left + r.width / 2) / VW) * 2 - 1, 1 - ((r.top + r.height / 2) / VH) * 2);
+    (this.material.uniforms.uCvTime.value as THREE.Vector4).set(...o.time);
+    for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) {
+      u.uCvOn.value = 1;
+      u.uCvT.value = 0;
+      u.uCvSpread.value = o.spread;
+      u.uCvSize.value = o.size;
+      u.uPaper.value = 0;
+    }
+    this.onScreen = true;
+    this.setRunning();
+    return true;
+  }
+
+  /** Devolve o canvas ao hero e desliga a transformação. */
+  endCv(): void {
+    if (!this.cv) return;
+    const { parent, next, style } = this.cv;
+    this.cv = null;
+    parent.insertBefore(this.canvas, next);
+    if (style) this.canvas.setAttribute('style', style);
+    else this.canvas.removeAttribute('style');
+    (this.material.uniforms.uRemap.value as THREE.Vector4).set(1, 1, 0, 0);
+    for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) u.uCvOn.value = 0;
+    this.resize();
+  }
+
   /** Aplica um novo genoma; morph animado para a nova forma. */
   applyGenome(g: Genome, immediate = false): void {
     for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) {
@@ -320,7 +456,9 @@ export class Organism {
     this.motion = g.motion;
 
     this.targetA.setHSL(g.hue / 360, g.sat, 0.62, THREE.SRGBColorSpace);
-    this.targetB.setHSL(g.hue2 / 360, g.sat, 0.58, THREE.SRGBColorSpace);
+    // accentMode 'mono': organismo em um só tom; 'split': segundo tom apagado
+    const h2 = g.accentMode === 'mono' ? g.hue : g.hue2;
+    this.targetB.setHSL(h2 / 360, g.accentMode === 'split' ? g.sat * 0.35 : g.sat, 0.58, THREE.SRGBColorSpace);
 
     // Forma: só regenera (e reenvia ~375 KB à GPU) quando o gene shape muda.
     // Nos outros passos de mutação bastam os uniforms acima.
@@ -349,6 +487,7 @@ export class Organism {
   }
 
   private resize(): void {
+    if (this.cv) return; // durante a transformação o canvas ocupa a tela inteira
     const parent = this.canvas.parentElement ?? document.body;
     const w = parent.clientWidth;
     const h = parent.clientHeight;
@@ -364,13 +503,21 @@ export class Organism {
     this.timer.update();
     const rawDt = this.timer.getDelta();
     // > 250 ms é aba/iframe estrangulado pelo navegador, não GPU lenta
-    if (this.morph >= 1 && rawDt < 0.25) this.adapt(rawDt); // durante o morph há regeneração de buffers
+    if (this.morph >= 1 && rawDt < 0.25 && !this.cv) this.adapt(rawDt); // durante o morph há regeneração de buffers
     const dt = Math.min(0.05, rawDt);
     const t = this.timer.getElapsed() * this.motion;
     if (this.morph < 1) this.morph = Math.min(1, this.morph + dt * 0.55);
     for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) {
       u.uTime.value = t;
       u.uMorph.value = this.morph;
+    }
+    if (this.cv) {
+      const ct = (performance.now() - this.cv.start) / 1000;
+      const paper = this.cv.paper(ct);
+      for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) {
+        u.uCvT.value = ct;
+        u.uPaper.value = paper;
+      }
     }
 
     this.colorA.lerp(this.targetA, dt * 2);

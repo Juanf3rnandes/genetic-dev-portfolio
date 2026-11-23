@@ -17,24 +17,6 @@ async function clickLangToggle(page: Page): Promise<void> {
   await toggle.click();
 }
 
-/** ROM homebrew mínima (1 KB): modo bitmap com um gradiente animado. */
-function testRom(): Buffer {
-  const code = [
-    0xe3a00301, 0xe3a01b01, 0xe3811003, 0xe1c010b0, 0xe2804e13, 0xe3a06000, 0xe3a02406, 0xe1d430b0, 0xe1e03003, 0xe1a03b03,
-    0xe1a03b23, 0xe3a07000, 0xe0878006, 0xe0288303, 0xe0c280b2, 0xe2877001, 0xe3570c96, 0x1afffff9, 0xe2866004, 0xeafffff1,
-  ];
-  const rom = Buffer.alloc(0x400);
-  rom.writeUInt32LE(0xea00002e, 0);
-  rom.write('ASCIITEST', 0xa0, 'ascii');
-  rom.write('ATST00', 0xac, 'ascii');
-  rom[0xb2] = 0x96;
-  let c = 0;
-  for (let i = 0xa0; i < 0xbd; i++) c = (c - rom[i]) & 0xff;
-  rom[0xbd] = (c - 0x19) & 0xff;
-  code.forEach((w, i) => rom.writeUInt32LE(w >>> 0, 0xc0 + 4 * i));
-  return rom;
-}
-
 test('carrega sem erros, com cores e sem rolagem lateral', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/?lang=pt');
@@ -49,7 +31,6 @@ test('carrega sem erros, com cores e sem rolagem lateral', async ({ page }) => {
     document.body.appendChild(probe);
     const cs = getComputedStyle(probe);
     const out = {
-      isolated: crossOriginIsolated,
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       accent: cs.color,
       glow: cs.backgroundColor,
@@ -58,7 +39,6 @@ test('carrega sem erros, com cores e sem rolagem lateral', async ({ page }) => {
     probe.remove();
     return out;
   });
-  expect(info.isolated, 'isolamento cross-origin (arcade)').toBe(true);
   expect(info.overflow, 'página não pode rolar para o lado').toBeLessThanOrEqual(0);
   const transparent = ['rgba(0, 0, 0, 0)', 'transparent'];
   expect(transparent, 'cor de destaque do genoma').not.toContain(info.accent);
@@ -74,7 +54,8 @@ test('troca de idioma PT → EN', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
   await clickLangToggle(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('.hero-copy h1')).toContainText('solve problems');
+  await expect(page.locator('.hero-copy h1')).toContainText('Software Engineer');
+  await expect(page.locator('.job').first()).toContainText('Allcom Telecom');
   await expect(page.locator('.project .card-link').first()).toContainText('Read case study');
 });
 
@@ -113,13 +94,6 @@ test('baixa o currículo depois da animação', async ({ page }) => {
   await expect(page.locator('.cv-portal')).toHaveCount(0, { timeout: 5_000 });
 });
 
-test('arcade roda uma ROM (WebAssembly + threads)', async ({ page }) => {
-  const errors = watchErrors(page);
-  await page.goto('/?lang=pt#arcade');
-  await page.locator('[data-arcade-file]').setInputFiles({ name: 'test-pattern.gba', mimeType: 'application/octet-stream', buffer: testRom() });
-  await expect(page.locator('[data-arcade-status]')).toContainText('rodando', { timeout: 40_000 });
-  expect(errors).toEqual([]);
-});
 
 test('princípios e notas técnicas', async ({ page }) => {
   const errors = watchErrors(page);

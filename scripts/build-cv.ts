@@ -129,6 +129,7 @@ class Writer {
     }
     const r = clean(right);
     this.page.drawText(r, { x: A4[0] - M - this.regular.widthOfTextAtSize(r, 9), y: this.y, size: 9, font: this.regular, color: MUTED });
+    this.y -= 4; // respiro entre o título e os itens
   }
 }
 
@@ -154,7 +155,7 @@ async function build(lang: Lang): Promise<Uint8Array> {
   w.text(`${T.portfolio}: github.com/Juanf3rnandes/genetic-dev-portfolio`, { size: 9, color: MUTED, gap: 2 });
 
   w.section(T.summary);
-  w.text(tr(about.paragraphs[0]), { size: 10 });
+  w.text(tr(profile.lede), { size: 10 });
 
   const entry = (e: CvEntry) => {
     w.row(`${tr(e.title)} — ${tr(e.org)}`, tr(e.period), { tag: e.example ? T.example : undefined });
@@ -177,7 +178,11 @@ async function build(lang: Lang): Promise<Uint8Array> {
   }
 
   w.section(T.education);
-  education.forEach(entry);
+  // título e instituição em linhas separadas: juntos não cabem ao lado da data
+  for (const e of education) {
+    w.row(tr(e.title), tr(e.period));
+    w.text(tr(e.org), { size: 9.5, color: MUTED });
+  }
 
   w.section(T.languages);
   w.text(languages.map((l) => `${tr(l.name)} — ${tr(l.level)}${l.example ? ` (${T.example})` : ''}`).join('   ·   '), { size: 9.5 });

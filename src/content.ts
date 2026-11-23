@@ -8,46 +8,160 @@ import type { Localized } from './i18n';
 export const profile = {
   name: 'Juan Fernandes',
   handle: 'JUAN.DEV',
-  role: { pt: 'Desenvolvedor de software', en: 'Software developer' } as Localized,
-  stack: ['Laravel', 'Node.js', 'TypeScript', 'React'],
+  role: { pt: 'Engenheiro de Software Full Stack', en: 'Full Stack Software Engineer' } as Localized,
+  stack: ['PHP', 'Laravel', 'Next.js', 'Node.js'],
   lede: {
-    pt: 'Primeiro entendo o problema, depois escolho a ferramenta. Já foi Laravel, Node, TypeScript, C e até assembly MIPS — vai ser o que o próximo problema pedir.',
-    en: 'First I understand the problem, then I pick the tool. So far that has meant Laravel, Node, TypeScript, C and even MIPS assembly — next it will be whatever the problem needs.',
+    pt: 'Engenheiro full stack com 4 anos de experiência, focado em PHP/Laravel e APIs REST. Trabalho com sistemas multi-tenant, modelagem de dados, performance, processamento assíncrono e microsserviços — além de Next.js, React, Node.js e liderança técnica.',
+    en: 'Full stack engineer with 4 years of experience, focused on PHP/Laravel and REST API design. I work on multi-tenant systems, data modeling, performance, asynchronous processing and microservices — plus Next.js, React, Node.js and technical leadership.',
   } as Localized,
-  location: { pt: 'Brasil · remoto para o mundo', en: 'Brazil · remote worldwide' } as Localized,
+  location: { pt: 'São Paulo, Brasil · remoto (UTC-3)', en: 'São Paulo, Brazil · remote (UTC-3)' } as Localized,
   github: 'https://github.com/Juanf3rnandes',
-  linkedin: 'https://www.linkedin.com/in/', // TODO: coloque a URL do seu perfil
+  linkedin: 'https://www.linkedin.com/in/juan-fernandes-605b05222',
   email: 'fernandesjuan633@gmail.com',
+};
+
+/** Números de destaque logo abaixo do hero. */
+export const highlights: { value: string; label: Localized }[] = [
+  { value: '4', label: { pt: 'anos de experiência', en: 'years of experience' } },
+  { value: '7', label: { pt: 'devs liderados tecnicamente', en: 'developers led technically' } },
+  { value: 'P95/P99', label: { pt: 'APIs otimizadas com métricas', en: 'APIs tuned with real metrics' } },
+];
+
+/** Experiência profissional: alimenta a seção do site E o currículo em PDF. */
+export interface Job {
+  company: string;
+  role: Localized;
+  period: Localized;
+  context: Localized;
+  bullets: Localized[];
+  stack: string[];
+}
+
+export const experience: Job[] = [
+  {
+    company: 'Allcom Telecom',
+    role: { pt: 'Engenheiro Full Stack (Pleno)', en: 'Full Stack Engineer (Mid-level)' },
+    period: { pt: '2025 — atual', en: '2025 — present' },
+    context: {
+      pt: 'Telecom especializada em conectividade e IoT, com sistemas de gestão próprios.',
+      en: 'Telecommunications company specialized in connectivity and IoT, with in-house management systems.',
+    },
+    bullets: [
+      {
+        pt: 'Desenvolvo e evoluo o CRM corporativo em Laravel: sistema multi-tenant com controle de acesso por papéis (RBAC).',
+        en: "Build and evolve the company's Laravel-based corporate CRM, a multi-tenant system with role-based access control (RBAC).",
+      },
+      {
+        pt: 'Projetei um motor de regras dinâmico para aprovação comercial de itens de pedido, trocando regras hardcoded por configuração por tenant; fui responsável pela modelagem de dados e pelo tratamento de locks e concorrência.',
+        en: 'Designed a dynamic rules engine for commercial approval of order items, replacing hardcoded rules with per-tenant configuration; owned data modeling and handled locking and concurrency.',
+      },
+      {
+        pt: 'Implantei observabilidade com New Relic (latência P95/P99, throughput, disponibilidade, taxa de erro) e otimizei a API com base nessas métricas: índices e gargalos de concorrência.',
+        en: 'Implemented observability with New Relic (P95/P99 latency, throughput, availability, error rate) and optimized the API based on those metrics, adding indexes and fixing concurrency bottlenecks.',
+      },
+      {
+        pt: 'Fluxos assíncronos com Laravel Queues e Redis, e integrações com vendas, gestão de leads e serviços externos.',
+        en: 'Built asynchronous workflows with Laravel Queues and Redis, and integrations with sales processes, lead management and external services.',
+      },
+      {
+        pt: 'Responsável pela multicotação de uma plataforma de seguros; atuação na plataforma de gestão de conectividade IoT.',
+        en: 'Owned the multi-quote feature of an insurance quoting platform and worked on the IoT connectivity management platform.',
+      },
+    ],
+    stack: ['PHP', 'Laravel', 'Redis', 'New Relic', 'Next.js', 'Docker'],
+  },
+  {
+    company: 'Grupo Aion',
+    role: { pt: 'Engenheiro Full Stack · liderança técnica', en: 'Full Stack Engineer · tech lead' },
+    period: { pt: 'abr 2025 — set 2025', en: 'Apr 2025 — Sep 2025' },
+    context: {
+      pt: 'Grupo de tecnologia construindo um banco digital e aplicações SaaS com recursos de IA.',
+      en: 'Technology group building a digital banking platform and SaaS applications with AI features.',
+    },
+    bullets: [
+      {
+        pt: 'Liderei tecnicamente um time de 7 desenvolvedores: planejamento de tarefas, padrões, code review e mentoria.',
+        en: 'Led a team of 7 developers technically: task planning, standards, code review and mentoring.',
+      },
+      {
+        pt: 'Defini a arquitetura e as principais decisões técnicas, estruturando a aplicação em microsserviços com Docker, RabbitMQ e Redis, e documentei os padrões para alinhar os times.',
+        en: 'Defined the architecture and key technical decisions, structuring the application as microservices with Docker, RabbitMQ and Redis, and documented standards to align the teams.',
+      },
+      {
+        pt: 'Aplicações SaaS em Next.js e serviços em Node.js, com integrações de API e autenticação OAuth 2.0 / JWT.',
+        en: 'Built SaaS applications with Next.js and backend services with Node.js, including API integrations and OAuth 2.0 / JWT authentication.',
+      },
+      {
+        pt: 'Integração de LLMs com arquitetura RAG (Pinecone e Redis) e definição do design system do front-end.',
+        en: 'Integrated LLMs using a RAG architecture (Pinecone and Redis) and defined the front-end design system.',
+      },
+    ],
+    stack: ['Node.js', 'Next.js', 'RabbitMQ', 'Redis', 'Docker', 'RAG'],
+  },
+  {
+    company: 'Hubert Administração de Condomínios e Imóveis',
+    role: { pt: 'Desenvolvedor de Software', en: 'Software Developer' },
+    period: { pt: 'fev 2022 — set 2024', en: 'Feb 2022 — Sep 2024' },
+    context: {
+      pt: 'Administradora de condomínios e imóveis em São Paulo, com sistemas web próprios.',
+      en: 'Property and condominium management company in São Paulo with in-house web systems.',
+    },
+    bullets: [
+      {
+        pt: 'Módulos do ERP em Next.js e TypeScript, com Redux para estado e integração com APIs REST.',
+        en: 'Developed ERP modules with Next.js and TypeScript, using Redux for state management and integrating REST APIs.',
+      },
+      {
+        pt: 'Contribuí com a biblioteca interna de design system, melhorando componentes reutilizáveis com Styled Components e Tailwind CSS.',
+        en: "Contributed to the company's internal design system library, improving reusable components with Styled Components and Tailwind CSS.",
+      },
+      {
+        pt: 'Projetos mobile e aplicações Angular; testes E2E com Cypress, unitários com Jest e testes funcionais de regras de negócio.',
+        en: 'Also worked on mobile projects and Angular applications, and wrote E2E tests with Cypress, unit tests with Jest and functional tests for business rules.',
+      },
+      {
+        pt: 'Entrei na empresa como Analista de Suporte Técnico (fev–set 2022), atendendo N1/N2 e gerando relatórios em SQL Server.',
+        en: 'Started at the company as a Technical Support Analyst (Feb–Sep 2022), handling L1/L2 tickets and building SQL Server reports.',
+      },
+    ],
+    stack: ['Next.js', 'TypeScript', 'Redux', 'Angular', 'Cypress', 'Jest'],
+  },
+];
+
+export const education = {
+  degree: { pt: 'Tecnólogo em Análise e Desenvolvimento de Sistemas', en: 'Associate Degree in Systems Analysis and Development' } as Localized,
+  school: 'Universidade São Judas Tadeu',
+  period: { pt: 'concluído em 2024', en: 'completed 2024' } as Localized,
 };
 
 /** Parágrafos e fatos da seção "Sobre". */
 export const about = {
   paragraphs: [
     {
-      pt: 'Gosto de programar porque programar resolve problemas. A linguagem e o framework vêm depois: no dia a dia isso tem sido APIs, painéis e produtos web com Laravel, Node.js, TypeScript e React, mas a escolha depende do trabalho, não de preferência.',
-      en: "I like programming because programming solves problems. Language and framework come second: day to day that has meant APIs, dashboards and web products with Laravel, Node.js, TypeScript and React, but the choice depends on the job, not on preference.",
+      pt: 'Meu trabalho principal é back-end com PHP/Laravel: APIs REST, sistemas multi-tenant, modelagem de dados e regras de negócio que precisam continuar consistentes sob concorrência. No front-end, construo interfaces em Next.js e React.',
+      en: 'My core work is back end with PHP/Laravel: REST APIs, multi-tenant systems, data modeling and business rules that must stay consistent under concurrency. On the front end, I build interfaces with Next.js and React.',
     },
     {
-      pt: 'Quando não entendo algo, abro e olho por dentro. Foi assim que escrevi um motor de busca do zero, que estou portando um jogo de N64 para macOS lendo assembly, e que este portfólio virou um algoritmo genético.',
-      en: "When I don't understand something, I open it up and look inside. That's how I ended up writing a search engine from scratch, porting an N64 game to macOS by reading assembly, and turning this portfolio into a genetic algorithm.",
+      pt: 'Gosto de entender os sistemas por dentro: meço antes de otimizar e escolho a ferramenta pelo problema. Fora do trabalho, isso virou um motor de busca em microsserviços, um port de N64 para macOS e este portfólio, que se adapta a cada visita com um algoritmo genético.',
+      en: "I like understanding systems from the inside: I measure before optimizing and pick the tool for the problem. Outside work, that turned into a microservices search engine, an N64-to-macOS port and this portfolio, which adapts to each visit with a genetic algorithm.",
     },
   ] as Localized[],
   facts: [
     [
       { pt: 'Base', en: 'Based in' },
-      { pt: 'Brasil · remoto para o mundo', en: 'Brazil · remote worldwide' },
+      { pt: 'São Paulo, Brasil · remoto (UTC-3)', en: 'São Paulo, Brazil · remote (UTC-3)' },
     ],
     [
       { pt: 'Foco', en: 'Focus' },
-      { pt: 'Resolver o problema certo', en: 'Solving the right problem' },
+      { pt: 'PHP/Laravel, APIs REST, sistemas multi-tenant', en: 'PHP/Laravel, REST APIs, multi-tenant systems' },
     ],
     [
-      { pt: 'Stack', en: 'Stack' },
-      { pt: 'A que o problema pedir', en: 'Whatever the problem needs' },
+      { pt: 'Formação', en: 'Education' },
+      { pt: 'ADS · Universidade São Judas Tadeu (2024)', en: 'Systems Analysis & Development · São Judas Tadeu University (2024)' },
     ],
     [
       { pt: 'Aberto a', en: 'Open to' },
-      { pt: 'Vagas remotas e projetos com problema de verdade', en: 'Remote roles and projects with real problems' },
+      { pt: 'Vagas remotas, inclusive internacionais', en: 'Remote roles, including international' },
     ],
   ] as [Localized, Localized][],
 };
@@ -172,7 +286,7 @@ export const projects: Project[] = [
       'This site. A TypeScript genetic algorithm evolves colors, 3D shape, typography and layout based on visitor engagement.',
     ),
     highlights: [
-      L('42 genes visuais e estruturais (cor, forma 3D, layout, tipografia)', '42 visual and structural genes (color, 3D shape, layout, typography)'),
+      L('43 genes visuais e estruturais (cor, forma 3D, layout, tipografia)', '43 visual and structural genes (color, 3D shape, layout, typography)'),
       L('Elitismo, torneio, crossover uniforme e mutação gaussiana', 'Elitism, tournament selection, uniform crossover and Gaussian mutation'),
       L('Organismo de partículas em Three.js com shaders próprios', 'Three.js particle organism with custom shaders'),
     ],
@@ -376,15 +490,16 @@ export const projects: Project[] = [
   },
 ];
 
-/** Ferramentas agrupadas pelo TIPO DE PROBLEMA que resolvem, não por linguagem. */
+/** Stack agrupada por camada (a mesma do currículo). */
 export const skills: { group: Localized; items: (string | Localized)[] }[] = [
-  { group: L('Dados e APIs', 'Data and APIs'), items: ['Laravel', 'PHP', 'Node.js', 'REST', 'PostgreSQL', 'MySQL', 'Redis'] },
-  { group: L('Interfaces', 'Interfaces'), items: ['TypeScript', 'React', 'Vite', 'Canvas / WebGL', 'Three.js', 'CSS'] },
-  { group: L('Desempenho e baixo nível', 'Performance and low level'), items: ['C/C++', L('Engenharia reversa', 'Reverse engineering'), 'MIPS', 'Profiling', 'Linux', 'Git'] },
+  { group: L('Back-end', 'Back end'), items: ['PHP', 'Laravel', 'Laravel Queues', 'REST APIs', 'Node.js', 'Java'] },
+  { group: L('Front-end', 'Front end'), items: ['TypeScript', 'React', 'Next.js', 'Redux', 'Angular', 'Tailwind CSS'] },
+  { group: L('Dados', 'Data'), items: ['PostgreSQL', 'SQL Server', 'Redis', 'Elasticsearch'] },
+  { group: L('Infra e qualidade', 'Infra and quality'), items: ['Docker', 'RabbitMQ', L('Microsserviços', 'Microservices'), 'New Relic', 'OAuth 2.0 / JWT', 'Jest', 'Cypress'] },
 ];
 
 /** Frase que fecha a seção de stack. */
 export const skillsNote: Localized = {
-  pt: 'Se o problema pedir uma ferramenta que não está aqui, eu aprendo. O port de N64 começou sem eu saber MIPS.',
-  en: "If the problem needs a tool that isn't listed here, I learn it. The N64 port started before I knew MIPS.",
+  pt: 'Também estudo baixo nível por conta própria: C, engenharia reversa e assembly MIPS no port de N64.',
+  en: 'I also study low-level work on my own: C, reverse engineering and MIPS assembly in the N64 port.',
 };

@@ -1,11 +1,6 @@
 # Lido pelo Cloudflare (Workers Static Assets / Pages). Ignorado no GitHub Pages.
 
-# Isolamento cross-origin: o arcade (mGBA com threads) precisa de SharedArrayBuffer.
-# Com estes headers vindos do servidor, o arcade funciona sem o service worker
-# e sem o recarregamento extra na primeira visita.
 /*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 
@@ -13,5 +8,3 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/mgba/*
-  Cache-Control: public, max-age=604800

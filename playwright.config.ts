@@ -5,8 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
  *
  *   npm run test:e2e
  *
- * Roda contra o build de produção servido pelo `vite preview`, que já envia os
- * headers de isolamento cross-origin (necessários para o arcade).
+ * Roda contra o build de produção servido pelo `vite preview`.
  */
 export default defineConfig({
   testDir: 'e2e',

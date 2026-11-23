@@ -1,6 +1,6 @@
 // Deploy no Cloudflare Workers como site estático (só a pasta dist/, sem código de servidor).
 // O build continua sendo `npm run build`; o Cloudflare só publica o resultado.
-// Os headers (isolamento para o arcade, cache) ficam em public/_headers.
+// Os headers (cache, segurança) ficam em public/_headers.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "genetic-dev-portfolio",

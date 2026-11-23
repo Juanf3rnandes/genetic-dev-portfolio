@@ -18,7 +18,6 @@ import {
   mulberry32,
   mutate,
   normalizeGenome,
-  randomGenome,
   seedGenome,
   type Rng,
 } from './genome';
@@ -40,9 +39,10 @@ function makeIndividual(genome: Genome, born: number, parents: string[]): Indivi
 export function freshState(seed = Date.now() % 1_000_000): EvolutionState {
   const rng = mulberry32(seed);
   const population: Individual[] = [makeIndividual(seedGenome(), 0, [])];
-  // 3 variações leves da semente + o resto aleatório: começa bonito, explora rápido
-  for (let i = 0; i < 3; i++) population.push(makeIndividual(mutate(seedGenome(), rng, 0.5, 0.15), 0, []));
-  while (population.length < POP_SIZE) population.push(makeIndividual(randomGenome(rng), 0, []));
+  // 3 variações leves + 4 mais ousadas da semente: começa contido e o GA explora
+  // a partir daí (genomas 100% aleatórios voltavam ao visual carregado de antes)
+  for (let i = 0; i < 3; i++) population.push(makeIndividual(mutate(seedGenome(), rng, 0.25, 0.1), 0, []));
+  while (population.length < POP_SIZE) population.push(makeIndividual(mutate(seedGenome(), rng, 0.45, 0.2), 0, []));
   return { version: 1, generation: 0, population, history: [], totalEvals: 0, seed };
 }
 

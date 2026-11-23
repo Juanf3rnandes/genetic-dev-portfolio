@@ -1,6 +1,6 @@
 import { GENE_KEYS, GENE_SPEC, type Genome } from '../ga/genome';
 import { fitnessOf, MUTATION_RATE, POP_SIZE, ELITISM, type Evolution } from '../ga/engine';
-import { about, principles, profile, projects, skills, skillsNote } from '../content';
+import { about, education, experience, highlights, principles, profile, projects, skills, skillsNote } from '../content';
 import { noteMeta, notes } from '../projects/notes';
 import { locale, t, tr, type Localized } from '../i18n';
 
@@ -45,7 +45,7 @@ export function bumpProject(id: string): void {
 export function renderStatic(onProjectClick: (id: string) => void, onContactClick: () => void): void {
   $('[data-handle]').textContent = profile.handle;
   $('[data-lede]').textContent = tr(profile.lede);
-  $('[data-hero-kicker]').textContent = tr(profile.location).toUpperCase();
+  $('[data-hero-kicker]').textContent = tr(profile.location);
 
   const aboutEl = $('[data-about]');
   aboutEl.innerHTML = '';
@@ -64,6 +64,46 @@ export function renderStatic(onProjectClick: (id: string) => void, onContactClic
     facts.append(dt, dd);
   }
   $('[data-year]').textContent = String(new Date().getFullYear());
+
+  // números de destaque no hero
+  const hl = $('[data-highlights]');
+  hl.innerHTML = '';
+  for (const h of highlights) {
+    const div = document.createElement('div');
+    const dt = document.createElement('dt');
+    dt.textContent = h.value;
+    const dd = document.createElement('dd');
+    dd.textContent = tr(h.label);
+    div.append(dt, dd);
+    hl.appendChild(div);
+  }
+
+  // experiência profissional (mesma fonte do currículo em PDF)
+  const jobs = $('[data-experience]');
+  jobs.innerHTML = '';
+  for (const j of experience) {
+    const li = document.createElement('li');
+    li.className = 'job';
+    li.innerHTML = `
+      <div class="job-meta mono"><span class="job-period"></span></div>
+      <div class="job-body">
+        <h3 class="job-title"><span class="job-role"></span> <span class="job-at">·</span> <span class="job-company"></span></h3>
+        <p class="job-context muted"></p>
+        <ul class="job-points">${j.bullets.map(() => '<li></li>').join('')}</ul>
+        <div class="chips">${j.stack.map(() => '<span class="chip"></span>').join('')}</div>
+      </div>`;
+    li.querySelector('.job-period')!.textContent = tr(j.period);
+    li.querySelector('.job-role')!.textContent = tr(j.role);
+    li.querySelector('.job-company')!.textContent = j.company;
+    li.querySelector('.job-context')!.textContent = tr(j.context);
+    li.querySelectorAll('.job-points li').forEach((el, i) => (el.textContent = tr(j.bullets[i])));
+    li.querySelectorAll('.chip').forEach((el, i) => (el.textContent = j.stack[i]));
+    jobs.appendChild(li);
+  }
+  const edu = $('[data-education]');
+  edu.innerHTML = '<span class="edu-label accent"></span><span class="edu-text"></span>';
+  edu.querySelector('.edu-label')!.textContent = t('experience.education');
+  edu.querySelector('.edu-text')!.textContent = `${tr(education.degree)} · ${education.school} · ${tr(education.period)}`;
 
   const scores = loadProjectScores();
   const ordered = [...projects].sort((a, b) => (scores[b.id] ?? 0) - (scores[a.id] ?? 0));

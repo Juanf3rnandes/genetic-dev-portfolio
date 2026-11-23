@@ -22,15 +22,15 @@ visitante chega ──▶ indivíduo sorteado (torneio entre os menos avaliados)
 
 | Arquivo | O que faz |
 | --- | --- |
-| `src/ga/genome.ts` | 42 genes: visuais (hue, forma, partículas, ruído, bloom, type scale…) e estruturais (nav, efeito de título, layout dos projetos, pele dos cards, passos, stack, fundo, ordem das seções, separadores), `randomGenome`, `crossover`, `mutate`, `normalizeGenome` |
+| `src/ga/genome.ts` | 43 genes: visuais (hue, intensidade cyberpunk `fx`, modo de acento, forma, partículas, ruído, bloom, type scale…) e estruturais (nav, efeito de título, layout dos projetos, pele dos cards, passos, stack, fundo, ordem das seções, separadores), `randomGenome`, `crossover`, `mutate`, `normalizeGenome` |
 | `src/ga/engine.ts` | população, seleção, `evolve()` (função pura), escolha do indivíduo por visita |
 | `src/ga/fitness.ts` | transforma engajamento em um número 0–1 |
 | `src/ga/store.ts` | persistência: `localStorage` por padrão, endpoint HTTP opcional |
 | `src/scene/organism.ts` | nuvem de partículas Three.js: morph entre formas, simplex noise no vertex shader, reação ao cursor, glow em 2 camadas |
-| `src/scene/shapes.ts` | geradores: esfera, dupla hélice, toro, galáxia, lattice |
+| `src/scene/shapes.ts` | geradores: esfera, dupla hélice, toro, galáxia, lattice, nó toroidal, onda |
 | `src/ui/phenotype.ts` | genoma → CSS custom properties + atributos `data-ph-*` no `<html>` + ordem das seções |
 | `src/genes.css` | as variantes estruturais de cada componente (uma por valor de gene) |
-| `src/cyberpunk.css` | camada visual cyberpunk por cima de `styles.css` |
+| `src/cyberpunk.css` | camada visual cyberpunk por cima de `styles.css`, dosada pelo gene `fx` |
 | `src/ui/effects.ts` | efeitos de título que precisam de JS (scramble) |
 | `src/ui/render.ts` | HUD, painel do genoma, laboratório (população + histórico) |
 | `scripts/simulate.ts` | simulação headless: prova que o fitness converge |
