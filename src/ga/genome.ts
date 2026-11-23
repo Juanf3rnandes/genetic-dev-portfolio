@@ -6,7 +6,7 @@
  * conteúdo (textos, projetos) — só em como ele é apresentado.
  */
 
-export const SHAPES = ['sphere', 'helix', 'torus', 'galaxy', 'lattice'] as const;
+export const SHAPES = ['sphere', 'helix', 'torus', 'galaxy', 'lattice', 'knot', 'wave'] as const;
 export type Shape = (typeof SHAPES)[number];
 
 export const HERO_LAYOUTS = ['split', 'center', 'reverse'] as const;
@@ -14,15 +14,14 @@ export type HeroLayout = (typeof HERO_LAYOUTS)[number];
 
 // Genes estruturais: cada um troca a FORMA de um componente da tela, não só o estilo.
 export const NAV_STYLES = ['top', 'rail', 'dock'] as const;             // barra no topo · trilho lateral · dock flutuante
-export const TITLE_FX = ['glitch', 'neon', 'outline', 'scramble'] as const; // efeito dos títulos
+export const TITLE_FX = ['clean', 'glitch', 'neon', 'outline', 'scramble'] as const; // efeito dos títulos
 export const CARD_LAYOUTS = ['grid', 'list', 'bento', 'rail'] as const; // arranjo dos projetos
-export const SKINS = ['chamfer', 'bracket', 'terminal', 'holo'] as const; // pele de cards/painéis/passos
+export const SKINS = ['line', 'chamfer', 'bracket', 'terminal', 'holo'] as const; // pele de cards/painéis/passos
 export const STEPS_LAYOUTS = ['grid', 'timeline', 'rail'] as const;     // "como ele evolui"
 export const SKILLS_LAYOUTS = ['chips', 'terminal', 'columns'] as const;
-export const BG_PATTERNS = ['grid', 'dots', 'rain', 'hex'] as const;    // textura de fundo
+export const BG_PATTERNS = ['none', 'grid', 'dots', 'rain', 'hex'] as const; // textura de fundo
 export const SECTION_ORDERS = ['work', 'lab', 'stack'] as const;        // ordem das seções
-export const DIVIDERS = ['none', 'ticker', 'rule'] as const;            // separadores entre seções
-export const ASCII_STYLES = ['neon', 'color', 'phosphor'] as const;    // paleta padrão do arcade ASCII
+export const DIVIDERS = ['none', 'ticker', 'rule', 'hairline'] as const; // separadores entre seções
 export const FONT_PAIRS = ['chakra', 'mono', 'grotesk'] as const;       // fonte dos títulos
 export const HEADING_CASES = ['upper', 'normal'] as const;              // caixa dos títulos
 export const BUTTON_STYLES = ['chamfer', 'pill', 'bracket', 'underline'] as const;
@@ -34,6 +33,7 @@ export const ABOUT_LAYOUTS = ['split', 'stacked', 'cards'] as const;
 export const CONTACT_LAYOUTS = ['left', 'center', 'terminal'] as const;
 export const DECOS = ['none', 'tags', 'circuits', 'glyphs'] as const;  // elementos gerados nas margens
 export const CURSOR_FX = ['none', 'crosshair', 'trail'] as const;
+export const ACCENT_MODES = ['duo', 'mono', 'split'] as const;      // 2 acentos · 1 acento · acento 2 só nos detalhes
 
 type Of<T extends readonly unknown[]> = T[number];
 
@@ -43,6 +43,8 @@ export interface Genome {
   hue2: number;       // 0–360  matiz do acento secundário
   sat: number;        // 0.45–1 saturação dos acentos
   bgTint: number;     // 0–1    quanto o fundo puxa para o hue primário
+  fx: number;         // 0–0.75 intensidade cyberpunk (glow, scanlines, aberração, chão synthwave)
+  accentMode: Of<typeof ACCENT_MODES>;
 
   // Organismo 3D
   shape: Shape;
@@ -74,7 +76,6 @@ export interface Genome {
   bgPattern: Of<typeof BG_PATTERNS>;
   sectionOrder: Of<typeof SECTION_ORDERS>;
   divider: Of<typeof DIVIDERS>;
-  asciiStyle: Of<typeof ASCII_STYLES>;
 
   // Componentes adicionais
   fontPair: Of<typeof FONT_PAIRS>;
@@ -108,6 +109,8 @@ export const GENE_SPEC: Record<keyof Genome, GeneSpec> = {
   hue2: { kind: 'num', min: 0, max: 360 },
   sat: { kind: 'num', min: 0.45, max: 1 },
   bgTint: { kind: 'num', min: 0, max: 1 },
+  fx: { kind: 'num', min: 0, max: 0.75 },
+  accentMode: { kind: 'enum', options: ACCENT_MODES },
 
   shape: { kind: 'enum', options: SHAPES },
   particles: { kind: 'num', min: 3000, max: 16000, int: true },
@@ -136,7 +139,6 @@ export const GENE_SPEC: Record<keyof Genome, GeneSpec> = {
   bgPattern: { kind: 'enum', options: BG_PATTERNS },
   sectionOrder: { kind: 'enum', options: SECTION_ORDERS },
   divider: { kind: 'enum', options: DIVIDERS },
-  asciiStyle: { kind: 'enum', options: ASCII_STYLES },
 
   fontPair: { kind: 'enum', options: FONT_PAIRS },
   headingCase: { kind: 'enum', options: HEADING_CASES },
@@ -195,6 +197,8 @@ export function seedGenome(): Genome {
     hue2: 262,
     sat: 0.85,
     bgTint: 0.35,
+    fx: 0.2,
+    accentMode: 'duo',
     shape: 'sphere',
     particles: 9000,
     pointSize: 2.4,
@@ -212,17 +216,16 @@ export function seedGenome(): Genome {
     grain: 0.5,
     motion: 1,
     navStyle: 'top',
-    titleFx: 'glitch',
+    titleFx: 'clean',
     cardLayout: 'grid',
-    skin: 'chamfer',
+    skin: 'line',
     stepsLayout: 'grid',
     skillsLayout: 'chips',
-    bgPattern: 'grid',
+    bgPattern: 'none',
     sectionOrder: 'work',
-    divider: 'none',
-    asciiStyle: 'neon',
+    divider: 'hairline',
     fontPair: 'chakra',
-    headingCase: 'upper',
+    headingCase: 'normal',
     buttonStyle: 'chamfer',
     chipStyle: 'outline',
     eyebrowStyle: 'slashes',

@@ -308,6 +308,7 @@
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
+  opacity: calc(0.35 + var(--fx, 0.2));
 }
 .deco-tag,
 .deco-glyphs {

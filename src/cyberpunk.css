@@ -3,8 +3,9 @@
  *
  * Os genes continuam mandando: --accent/--accent2 viram neon, --radius vira o
  * tamanho do chanfro dos cantos, --grain controla a grade de fundo e --motion
- * a velocidade do glitch/scanlines. Para voltar ao visual original, basta
- * remover o import em main.ts.
+ * a velocidade do glitch/scanlines. O gene --fx (0–0.75) dosa o quanto de
+ * neon aparece: scanlines, chão synthwave, cantoneiras e glows escalam com ele,
+ * então a base é contida e o GA descobre quanto cyberpunk os visitantes querem.
  */
 
 :root {
@@ -17,6 +18,9 @@
   --text: #e6f1ff;
   --muted: #7d8aa5;
   --font-display: 'Chakra Petch', Inter, sans-serif;
+  /* elementos de HUD (DNA, metadados do organismo, cantoneiras) só aparecem
+     nas variantes com fx acima de ~0.25; na base contida ficam escondidos */
+  --hud: clamp(0, calc(var(--fx, 0.2) * 2.5 - 0.6), 1);
 }
 
 ::selection {
@@ -40,6 +44,7 @@ body::after {
   background:
     repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px),
     radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+  opacity: calc(var(--fx, 0.2) * 1.25);
 }
 
 /* grão vira grade de circuito (intensidade = gene grain) */
@@ -48,7 +53,7 @@ body::after {
     linear-gradient(var(--gridline) 1px, transparent 1px),
     linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
   background-size: 48px 48px;
-  opacity: calc(0.25 + var(--grain) * 0.6);
+  opacity: calc(0.15 + var(--grain) * 0.45);
 }
 
 /* ---------- tipografia ---------- */
@@ -58,6 +63,9 @@ body::after {
   font-family: var(--font-display);
 }
 .display {
+  letter-spacing: -0.02em;
+}
+[data-ph-case='upper'] .display {
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
@@ -66,8 +74,8 @@ body::after {
 .contact h2,
 .panel-vote h3 {
   text-shadow:
-    -1px 0 color-mix(in srgb, var(--accent2) 55%, transparent),
-    1px 0 color-mix(in srgb, var(--accent) 55%, transparent);
+    -1px 0 var(--glow2),
+    1px 0 var(--glow);
 }
 .display .accent {
   text-shadow: 0 0 10px var(--glow), 0 0 34px var(--glow-soft);
@@ -130,7 +138,7 @@ body::after {
   bottom: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent2) 80%, transparent);
-  opacity: 0.6;
+  opacity: calc(0.15 + var(--fx, 0.2) * 0.6);
 }
 .brand-dot {
   border-radius: 0;
@@ -138,9 +146,8 @@ body::after {
   box-shadow: 0 0 12px var(--accent), 0 0 28px var(--glow-soft);
 }
 .nav-links a {
-  text-transform: uppercase;
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 .nav-links a:not(.pill):hover {
   color: var(--accent);
@@ -219,8 +226,7 @@ body::after {
 
 /* ---------- botões ---------- */
 .btn {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 13px;
   height: 50px;
@@ -244,6 +250,7 @@ body::after {
 }
 .hud::after {
   content: '▮';
+  opacity: var(--hud);
   animation: cp-blink 1s steps(1) infinite;
 }
 @keyframes cp-blink {
@@ -256,7 +263,7 @@ body::after {
   position: absolute;
   inset: 4%;
   pointer-events: none;
-  opacity: 0.7;
+  opacity: calc(var(--hud) * 0.7);
   --c: var(--accent);
   --l: 22px;
   background:
@@ -271,6 +278,11 @@ body::after {
 }
 .hero-center .hero-stage::before {
   display: none;
+}
+.stage-meta,
+.hero-foot .dna {
+  opacity: calc(var(--hud) * 0.7);
+  transition: opacity 0.6s ease;
 }
 .stage-meta span::before {
   content: '> ';
@@ -294,7 +306,7 @@ body::after {
   transform: perspective(420px) rotateX(64deg);
   transform-origin: bottom center;
   mask-image: linear-gradient(to top, #000 0%, transparent 80%);
-  opacity: 0.35;
+  opacity: calc(var(--fx, 0.2) * 0.5);
   will-change: transform;
   animation: cp-grid calc(2.4s / var(--motion)) linear infinite;
 }
@@ -341,8 +353,7 @@ body::after {
 /* ---------- chips e afins ---------- */
 .chip {
   border-radius: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
   border-color: color-mix(in srgb, var(--accent) 30%, var(--line-strong));
 }
@@ -360,7 +371,6 @@ body::after {
 
 .toast {
   border-left: 3px solid var(--accent);
-  text-transform: uppercase;
 }
 .foot {
   border-top: 0;
@@ -404,7 +414,6 @@ body::after {
   background: var(--accent);
   box-shadow: 0 0 8px var(--glow);
   transform: rotate(45deg);
-  animation: cp-blink 1.6s steps(1) infinite;
 }
 
 /* projetos */

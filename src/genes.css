@@ -550,3 +550,43 @@ main {
     animation: none;
   }
 }
+
+/* =====================================================================
+   VARIANTES CONTIDAS — skin line · fundo none · separador hairline
+   (o lado minimalista do espaço de busca: o GA pode escolher entre elas
+   e as variantes cyberpunk acima)
+   ===================================================================== */
+
+/* --- line: borda fina, cantos arredondados pelo gene cardRadius, sem chanfro --- */
+[data-ph-skin='line'] :is(.card, .panel, .step) {
+  clip-path: none;
+  border-radius: calc(var(--radius) * 0.6);
+  background: var(--line);
+}
+[data-ph-skin='line'] :is(.card, .panel, .step)::before {
+  clip-path: none;
+  border-radius: calc(var(--radius) * 0.6 - 1px);
+}
+[data-ph-skin='line'] :is(.card, .step):hover {
+  background: color-mix(in srgb, var(--accent) 45%, var(--line));
+  transform: translateY(-2px);
+}
+[data-ph-skin='line'] .card:hover::before {
+  background: var(--surface);
+}
+
+/* --- fundo liso --- */
+[data-ph-bg='none'] .grain {
+  display: none;
+}
+
+/* --- hairline: só uma linha de 1px entre as seções --- */
+[data-ph-divider='hairline'] main > .section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: clamp(20px, 4vw, 56px);
+  right: clamp(20px, 4vw, 56px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--line-strong), var(--line) 70%, transparent);
+}

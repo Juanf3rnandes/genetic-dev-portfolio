@@ -28,7 +28,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%237CF5C4'/></svg>" />
   </head>
   <body>
-    <a class="skip mono" href="#projetos" data-i18n="skip">Pular para os projetos</a>
+    <a class="skip mono" href="#experiencia" data-i18n="skip">Pular para a experiência</a>
     <div class="grain" aria-hidden="true"></div>
     <div class="formation done" data-formation aria-hidden="true"><i></i></div>
     <div class="drift-pill mono" data-drift-pill hidden>
@@ -44,12 +44,11 @@
       </a>
       <button type="button" class="nav-toggle mono" data-nav-toggle aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu" data-i18n-attr="aria-label:nav.open"><span aria-hidden="true"></span>menu</button>
       <div class="nav-links" id="nav-links">
+        <a href="#experiencia" data-i18n="nav.experience">experiência</a>
         <a href="#projetos" data-i18n="nav.projects">projetos</a>
-        <a href="#principios" data-i18n="nav.principles">princípios</a>
-        <a href="#notas" data-i18n="nav.notes">notas</a>
         <a href="#sobre" data-i18n="nav.about">sobre</a>
-        <a href="#lab" data-i18n="nav.lab">lab</a>
-        <a href="#arcade" data-i18n="nav.arcade">arcade</a>
+        <a href="#notas" data-i18n="nav.notes">notas</a>
+        <a href="#lab" data-i18n="nav.site">o site</a>
         <button type="button" class="lang-toggle mono" data-lang-toggle data-i18n="lang.switch" data-i18n-attr="aria-label:lang.switchLabel;title:lang.switchLabel">EN</button>
         <a href="#contato" class="pill" data-contact data-i18n="nav.contact">contato</a>
       </div>
@@ -58,15 +57,16 @@
     <header class="hero" id="top">
       <div class="hero-copy">
         <div class="hud mono"><span class="avail" aria-hidden="true"></span><span data-hero-kicker>FULL STACK DEVELOPER</span></div>
-        <h1 class="display" data-i18n-html="hero.title">Juan Fernandes,<br />desenvolvedor<br /><em class="accent glitch" data-text="full stack">full stack</em>.</h1>
+        <h1 class="display" data-i18n-html="hero.title">Juan Fernandes<span class="hero-role">Engenheiro de Software <em class="accent glitch" data-text="Full Stack">Full Stack</em></span></h1>
         <p class="lede" data-lede></p>
+        <dl class="hero-stats" data-highlights></dl>
         <div class="actions">
-          <a class="btn btn-primary" href="#projetos" data-i18n="hero.cta.projects">Ver projetos</a>
+          <a class="btn btn-primary" href="#experiencia" data-i18n="hero.cta.projects">Ver experiência</a>
           <a class="btn btn-ghost" href="#contato" data-i18n="hero.cta.contact">Entrar em contato</a>
           <button type="button" class="btn btn-ghost cv-btn" data-cv-download><span class="cv-ico" aria-hidden="true">↓</span> <span data-i18n="cv.download">Baixar currículo</span></button>
         </div>
         <a class="ga-badge mono" href="#lab" data-i18n-attr="title:hero.badgeTitle">
-          <span class="ga-dot" aria-hidden="true"></span><span data-hud>GERAÇÃO 0 · MUTAÇÃO 8%</span>
+          <span class="ga-dot" aria-hidden="true"></span><span data-hud>Este site evolui a cada visita · geração 0 →</span>
         </a>
       </div>
       <div class="hero-stage">
@@ -80,6 +80,18 @@
     </header>
 
     <main>
+      <section class="section" id="experiencia">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow mono"><span data-secnum>02</span> — <span data-i18n="experience.eyebrow">EXPERIÊNCIA</span></span>
+            <h2 class="display" data-i18n-html="experience.title">Onde eu<br />trabalhei.</h2>
+          </div>
+          <p class="muted" data-i18n="experience.lead">4 anos construindo APIs, sistemas multi-tenant e produtos web.</p>
+        </div>
+        <ol class="jobs" data-experience></ol>
+        <div class="edu mono" data-education></div>
+      </section>
+
       <section class="section" id="projetos">
         <div class="section-head">
           <div>
@@ -181,66 +193,6 @@
         </div>
       </section>
 
-      <section class="section arcade" id="arcade">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow mono"><span data-secnum>05</span> — <span data-i18n="arcade.eyebrow">ARCADE</span></span>
-            <h2 class="display" data-i18n-html="arcade.title">Um Game Boy Advance<br />renderizado em ASCII.</h2>
-          </div>
-          <p class="muted" data-i18n-html="arcade.lead">Core mGBA compilado para WebAssembly. Cada frame é reduzido e convertido em caracteres em tempo real. Carregue um <span class="mono">.gba</span> seu: a ROM fica só no seu navegador.</p>
-        </div>
-        <div class="panel arcade-shell">
-          <div class="panel-head mono">
-            <span class="eyebrow"><span data-i18n="arcade.terminal">TERMINAL GBA · </span><span data-arcade-status data-i18n="arcade.st.off">desligado</span></span>
-            <span class="muted" data-arcade-fps></span>
-          </div>
-          <div class="arcade-screen" tabindex="0" data-arcade-screen data-i18n-attr="aria-label:arcade.screen">
-            <canvas class="arcade-ascii" data-arcade-ascii aria-hidden="true"></canvas>
-            <canvas class="arcade-emu" id="arcade-emu" data-arcade-emu width="240" height="160" aria-hidden="true"></canvas>
-          </div>
-          <div class="arcade-bar mono">
-            <button type="button" class="btn btn-primary arcade-load" data-arcade-load data-i18n="arcade.load">Carregar ROM</button>
-            <input type="file" accept=".gba,.gbc,.gb" hidden data-arcade-file />
-            <div class="arcade-group" role="group" data-i18n-attr="aria-label:arcade.palette">
-              <button type="button" data-arcade-style="neon" aria-pressed="true" data-i18n="arcade.neon">neon</button>
-              <button type="button" data-arcade-style="color" aria-pressed="false" data-i18n="arcade.color">cor</button>
-              <button type="button" data-arcade-style="phosphor" aria-pressed="false" data-i18n="arcade.phosphor">fósforo</button>
-            </div>
-            <div class="arcade-group" role="group" data-i18n-attr="aria-label:arcade.density">
-              <button type="button" data-arcade-cols="80" aria-pressed="false">80</button>
-              <button type="button" data-arcade-cols="120" aria-pressed="true">120</button>
-              <button type="button" data-arcade-cols="160" aria-pressed="false">160</button>
-            </div>
-            <div class="arcade-group" role="group" data-i18n-attr="aria-label:arcade.controls">
-              <button type="button" data-arcade-save data-i18n="arcade.save">salvar</button>
-              <button type="button" data-arcade-restore data-i18n="arcade.restore">carregar</button>
-              <button type="button" data-arcade-pause aria-pressed="false" data-i18n="arcade.pause">pausa</button>
-              <button type="button" data-arcade-mute aria-pressed="false" data-i18n="arcade.mute">mudo</button>
-              <button type="button" data-arcade-raw aria-pressed="false">raw</button>
-            </div>
-          </div>
-          <div class="arcade-pad" data-i18n-attr="aria-label:arcade.pad">
-            <div class="dpad">
-              <button type="button" data-btn="Up" aria-label="Cima">▲</button>
-              <button type="button" data-btn="Left" aria-label="Esquerda">◀</button>
-              <button type="button" data-btn="Right" aria-label="Direita">▶</button>
-              <button type="button" data-btn="Down" aria-label="Baixo">▼</button>
-            </div>
-            <div class="mid">
-              <button type="button" data-btn="L">L</button>
-              <button type="button" data-btn="Select">SELECT</button>
-              <button type="button" data-btn="Start">START</button>
-              <button type="button" data-btn="R">R</button>
-            </div>
-            <div class="ab">
-              <button type="button" data-btn="B">B</button>
-              <button type="button" data-btn="A">A</button>
-            </div>
-          </div>
-          <p class="mono muted small" data-i18n="arcade.help">clique na tela para focar · setas · X = A · Z = B · Enter = Start · Backspace = Select · A / S = L / R · solte um .gba sobre a tela</p>
-        </div>
-      </section>
-
       <section class="section contact" id="contato">
         <span class="eyebrow mono"><span data-secnum>06</span> — <span data-i18n="contact.eyebrow">CONTATO</span></span>
         <h2 class="display" data-i18n-html="contact.title">Vamos construir algo<br />que <em class="accent glitch" data-text="evolua">evolua</em>.</h2>
@@ -254,7 +206,7 @@
     <article class="case-view note-view" data-note hidden aria-live="polite"></article>
 
     <footer class="foot mono muted">
-      <span data-i18n-html="footer.made">© <span data-year></span> Juan Fernandes · feito com Three.js + um algoritmo genético · arcade com <a href="https://github.com/thenick775/mgba" target="_blank" rel="noopener">mGBA</a> (MPL-2.0)</span>
+      <span data-i18n-html="footer.made">© <span data-year></span> Juan Fernandes · feito com Three.js + um algoritmo genético</span>
       <span><span data-i18n="footer.individual">indivíduo</span> <span data-ind-id>—</span> · <button type="button" class="linklike" data-reset data-i18n="footer.reset">reiniciar linhagem</button></span>
     </footer>
 

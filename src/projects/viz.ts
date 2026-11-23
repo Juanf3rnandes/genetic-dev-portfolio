@@ -508,6 +508,9 @@ class DecompileViz extends Viz {
   protected draw(t: number): void {
     const c = this.ctx;
     const P = palette;
+    // o inicializador de campo da subclasse zera `bytes` depois do resize() do construtor
+    // base; sem animação (reduced motion) o draw roda antes do ResizeObserver repor.
+    if (!this.bytes.length) this.onResize();
     if (this.start < 0) this.start = t;
     const el = t - this.start;
     const CYCLE = 11;
