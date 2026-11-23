@@ -9,7 +9,6 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "simulate": "tsx scripts/simulate.ts",
-    "cv": "tsx scripts/build-cv.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -18,7 +17,6 @@
   "devDependencies": {
     "@playwright/test": "^1.65.0",
     "@types/three": "^0.187.0",
-    "pdf-lib": "^1.17.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"

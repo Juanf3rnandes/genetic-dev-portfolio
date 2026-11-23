@@ -27,7 +27,7 @@ export const highlights: { value: string; label: Localized }[] = [
   { value: 'P95/P99', label: { pt: 'APIs otimizadas com métricas', en: 'APIs tuned with real metrics' } },
 ];
 
-/** Experiência profissional: alimenta a seção do site E o currículo em PDF. */
+/** Experiência profissional (seção do site e folha da animação de download). */
 export interface Job {
   company: string;
   role: Localized;

@@ -13,7 +13,7 @@
  * Com prefers-reduced-motion (ou sem WebGL), baixa direto, sem animação.
  */
 
-import { getLang, t, tr } from '../i18n';
+import { t, type Localized } from '../i18n';
 import { education, experience, profile } from '../content';
 
 /** O que a animação precisa do organismo (ver Organism.transformToCv). */
@@ -39,14 +39,19 @@ function cssColor(name: string, fallback: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 }
 
+// Existe um único currículo, em inglês (PDF feito à mão), para qualquer idioma do site.
+const CV_FILE = 'cv/juan-fernandes-cv-en.pdf';
+/** A folha da animação mostra o mesmo conteúdo do PDF baixado: sempre em inglês. */
+const tr = (v: Localized): string => v.en;
+
 function cvUrl(): string {
-  return new URL(`cv/juan-fernandes-cv-${getLang()}.pdf`, document.baseURI).href;
+  return new URL(CV_FILE, document.baseURI).href;
 }
 
 function triggerDownload(): void {
   const a = document.createElement('a');
   a.href = cvUrl();
-  a.download = `Juan-Fernandes-CV-${getLang().toUpperCase()}.pdf`;
+  a.download = 'Juan-Fernandes-CV.pdf';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -118,12 +123,11 @@ function drawPage(scale: number, accent: string): HTMLCanvasElement {
     }
   };
 
-  const pt = getLang() === 'pt';
-  section(pt ? 'Resumo' : 'Summary');
+  section('Summary');
   para(tr(profile.lede), 8.5, '#3a3f4b');
   y += 10;
 
-  section(pt ? 'Experiência' : 'Experience');
+  section('Experience');
   for (const j of experience) {
     if (y > PAGE_H - 60) break;
     g.fillStyle = '#7d8494';
@@ -151,7 +155,7 @@ function drawPage(scale: number, accent: string): HTMLCanvasElement {
   }
 
   if (y < PAGE_H - 50) {
-    section(pt ? 'Formação' : 'Education');
+    section('Education');
     para(`${tr(education.degree)} · ${education.school}`, 8.5, '#3a3f4b');
   }
   return c;

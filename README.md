@@ -42,10 +42,10 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # dist/
 npm run simulate   # evolução com visitantes sintéticos, no terminal
-npm run cv         # regera o currículo em PDF (public/cv/, PT e EN)
 ```
 
-Edite o conteúdo em `src/content.ts`.
+Edite o conteúdo em `src/content.ts`. O currículo baixado pelo site é o PDF em
+`public/cv/juan-fernandes-cv-en.pdf` (inglês, o mesmo para os dois idiomas do site).
 
 ## Evolução compartilhada (opcional)
 

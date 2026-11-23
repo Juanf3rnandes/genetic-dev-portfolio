@@ -90,7 +90,8 @@ test('baixa o currículo depois da animação', async ({ page }) => {
     page.waitForEvent('download', { timeout: 15_000 }),
     page.locator('.hero [data-cv-download]').click(),
   ]);
-  expect(download.suggestedFilename()).toBe('Juan-Fernandes-CV-PT.pdf');
+  expect(download.suggestedFilename()).toBe('Juan-Fernandes-CV.pdf');
+  expect(download.url()).toContain('juan-fernandes-cv-en.pdf');
   await expect(page.locator('.cv-portal')).toHaveCount(0, { timeout: 5_000 });
 });
 
