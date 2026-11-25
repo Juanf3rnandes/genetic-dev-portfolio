@@ -113,24 +113,27 @@ export function renderStatic(onProjectClick: (id: string) => void, onContactClic
     const a = document.createElement('a');
     a.className = 'card project';
     a.href = `#/case/${p.id}`;
+    // card compacto: animação, título, uma frase, as 2 tecnologias principais e o CTA.
+    // Os destaques e a stack completa ficam no estudo de caso (#/case/<id>).
+    const tags = p.tags.slice(0, 2);
     a.innerHTML = `
       <div class="card-bar mono" aria-hidden="true"><span></span></div>
       <div class="project-viz"><canvas aria-hidden="true"></canvas></div>
       <div class="project-body">
-        <div class="card-head mono"><span class="num"></span><span class="status accent"></span></div>
+        <div class="card-head mono"><span class="num"></span><span class="status"></span></div>
         <h3></h3>
-        <p></p>
-        <ul class="project-points">${p.highlights.map(() => '<li></li>').join('')}</ul>
-        <div class="chips">${p.tags.map(() => `<span class="chip"></span>`).join('')}</div>
-        <span class="card-link"><span class="lbl"></span> <span>→</span></span>
+        <p class="project-desc"></p>
+        <div class="project-foot">
+          <div class="chips">${tags.map(() => `<span class="chip"></span>`).join('')}</div>
+          <span class="card-link"><span class="lbl"></span> <span class="arrow" aria-hidden="true">→</span></span>
+        </div>
       </div>`;
     a.querySelector('.card-bar span')!.textContent = `~/projects/${p.id}`;
     a.querySelector('.num')!.textContent = t('card.num', { n: String(idx + 1).padStart(2, '0') });
     a.querySelector('.status')!.textContent = p.status ? tr(p.status) : '';
     a.querySelector('h3')!.textContent = p.title;
-    a.querySelector('p')!.textContent = tr(p.description);
-    a.querySelectorAll('.project-points li').forEach((li, i) => (li.textContent = tr(p.highlights[i])));
-    a.querySelectorAll('.chip').forEach((c, i) => (c.textContent = txt(p.tags[i])));
+    a.querySelector('.project-desc')!.textContent = tr(p.description);
+    a.querySelectorAll('.chip').forEach((c, i) => (c.textContent = txt(tags[i])));
     a.querySelector('.card-link .lbl')!.textContent = t('card.cta');
     a.addEventListener('click', () => onProjectClick(p.id));
     cards.appendChild(a);

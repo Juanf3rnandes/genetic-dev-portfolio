@@ -56,7 +56,7 @@ test('troca de idioma PT → EN', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('.hero-copy h1')).toContainText('Software Engineer');
   await expect(page.locator('.job').first()).toContainText('Allcom Telecom');
-  await expect(page.locator('.project .card-link').first()).toContainText('Read case study');
+  await expect(page.locator('.project .card-link').first()).toContainText('Case study');
 });
 
 test('menu do celular abre e navega', async ({ page, isMobile }) => {
@@ -82,6 +82,38 @@ test('estudo de caso abre e volta', async ({ page }) => {
   await expect(page.locator('[data-case]')).toBeHidden();
   await expect(page.locator('#projetos')).toBeInViewport();
   expect(errors).toEqual([]);
+});
+
+test('cards de projeto compactos: o essencial no card, o resto no estudo de caso', async ({ page, isMobile }) => {
+  await page.goto('/?lang=pt');
+  const cards = page.locator('.project');
+  await expect(cards).toHaveCount(3);
+  for (const layout of isMobile ? ['grid'] : ['grid', 'list', 'bento', 'rail']) {
+    await page.evaluate((l) => {
+      // trava o gene de layout para o teste (a deriva pode trocá-lo enquanto o mouse mexe)
+      const h = document.documentElement;
+      (window as unknown as { __lock?: MutationObserver }).__lock?.disconnect();
+      const apply = () => h.dataset.phCards !== l && (h.dataset.phCards = l);
+      apply();
+      const mo = new MutationObserver(apply);
+      mo.observe(h, { attributes: true, attributeFilter: ['data-ph-cards'] });
+      (window as unknown as { __lock?: MutationObserver }).__lock = mo;
+    }, layout);
+    for (let i = 0; i < 3; i++) {
+      const box = (await cards.nth(i).boundingBox())!;
+      expect(box.height, `card ${i} (${layout}) baixo`).toBeLessThan(isMobile ? 420 : 460);
+      // nada do card vaza para fora dele
+      const overflow = await cards.nth(i).evaluate((el) => el.scrollWidth - el.clientWidth);
+      expect(overflow, `card ${i} (${layout}) sem vazamento lateral`).toBeLessThanOrEqual(0);
+    }
+  }
+  const first = cards.first();
+  await expect(first.locator('.chip')).toHaveCount(2);
+  await expect(first.locator('.project-points')).toHaveCount(0);
+  await expect(first.locator('.card-link')).toContainText('Estudo de caso');
+  // os destaques continuam no estudo de caso
+  await first.click();
+  await expect(page.locator('.case-sec .project-points li').first()).toBeVisible();
 });
 
 test('baixa o currículo depois da animação', async ({ page }) => {

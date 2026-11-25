@@ -279,47 +279,55 @@ main {
    Cada card tem uma animação (.project-viz) e o texto (.project-body).
    ===================================================================== */
 [data-ph-cards='grid'] .cards {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
 }
 
 [data-ph-cards='list'] .cards {
   grid-template-columns: 1fr;
-  gap: 18px;
+  gap: 14px;
 }
 @media (min-width: 861px) {
+  /* lista: animação à esquerda, texto à direita, linhas baixas */
   [data-ph-cards='list'] .project {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    column-gap: 36px;
-    align-items: center;
-  }
-  [data-ph-cards='list'] .project:nth-child(even) .project-viz {
-    order: 2;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    column-gap: 18px;
+    align-items: stretch;
   }
   [data-ph-cards='list'] .project-viz {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 9;
+  }
+  [data-ph-cards='list'] .project-body {
+    padding: 6px 8px 6px 0;
   }
 
-  /* bento: o projeto mais clicado vira o destaque com animação grande */
+  /* bento: o projeto mais clicado ocupa duas colunas, deitado; tudo numa linha só */
   [data-ph-cards='bento'] .cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   [data-ph-cards='bento'] .project:first-child {
     grid-column: span 2;
-    grid-row: span 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    column-gap: 14px;
   }
   [data-ph-cards='bento'] .project:first-child .project-viz {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: auto;
+    min-height: 220px;
   }
   [data-ph-cards='bento'] .project:first-child h3 {
-    font-size: calc(34px * var(--type-scale));
+    font-size: calc(24px * var(--type-scale));
+  }
+  [data-ph-cards='bento'] .project:first-child .project-desc {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
   }
 }
 
 [data-ph-cards='rail'] .cards {
   grid-template-columns: none;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(300px, 440px);
+  grid-auto-columns: minmax(280px, 360px);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding: 4px 0 14px;

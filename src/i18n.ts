@@ -66,8 +66,8 @@ const pt = {
   'notes.minutes': '{n} min de leitura',
   'notes.back': '← Voltar às notas',
   'notes.next': 'Próxima nota',
-  'card.num': 'PROJETO {n}',
-  'card.cta': 'Ler estudo de caso',
+  'card.num': '{n}',
+  'card.cta': 'Estudo de caso',
 
   'about.eyebrow': 'SOBRE',
   'about.title': 'Back-end sólido,<br />produto completo.',
@@ -225,8 +225,8 @@ const en: Record<Key, string> = {
   'notes.minutes': '{n} min read',
   'notes.back': '← Back to notes',
   'notes.next': 'Next note',
-  'card.num': 'PROJECT {n}',
-  'card.cta': 'Read case study',
+  'card.num': '{n}',
+  'card.cta': 'Case study',
 
   'about.eyebrow': 'ABOUT',
   'about.title': 'Solid back end,<br />complete product.',
