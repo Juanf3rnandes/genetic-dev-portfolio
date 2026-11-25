@@ -340,9 +340,37 @@ export function hashGenome(g: Genome): string {
  * se transforma aos poucos. Genes em `frozen` não mudam neste passo.
  */
 export function driftStep(current: Genome, level: number, rng: Rng, frozen: ReadonlySet<keyof Genome> = new Set()): Genome {
+  return driftStepDetailed(current, level, rng, frozen).genome;
+}
+
+export interface DriftDetail {
+  genome: Genome;
+  /** genes que mudaram neste passo */
+  changed: (keyof Genome)[];
+  /** genes que a mutação sorteou, mas que estavam congelados e ficaram como estavam */
+  blocked: (keyof Genome)[];
+}
+
+/** O mesmo passo de deriva, contando o que mudou e o que foi barrado (para o Raio-X). */
+export function driftStepDetailed(
+  current: Genome,
+  level: number,
+  rng: Rng,
+  frozen: ReadonlySet<keyof Genome> = new Set(),
+): DriftDetail {
   const rate = 0.02 + 0.13 * level;
   const sigma = 0.04 + 0.22 * level;
   const out = mutate(current, rng, rate, sigma) as Record<keyof Genome, unknown>;
-  for (const key of frozen) out[key] = current[key];
-  return out as Genome;
+  const changed: (keyof Genome)[] = [];
+  const blocked: (keyof Genome)[] = [];
+  for (const key of GENE_KEYS) {
+    if (out[key] === current[key]) continue;
+    if (frozen.has(key)) {
+      out[key] = current[key];
+      blocked.push(key);
+    } else {
+      changed.push(key);
+    }
+  }
+  return { genome: out as Genome, changed, blocked };
 }
