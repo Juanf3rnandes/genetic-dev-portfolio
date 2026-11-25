@@ -617,3 +617,45 @@ body.note-open main {
   box-shadow: inset 2px 0 0 var(--accent2);
   color: var(--muted);
 }
+
+/* Raio-X: botão </> na navegação e dica no hero (o resto vem no chunk do Raio-X) */
+.xray-toggle {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 6px 8px;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.xray-toggle:hover,
+.xray-toggle[aria-pressed='true'] {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.xray-hint {
+  display: none;
+  margin-left: 18px;
+}
+.xray-hint kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 1px 5px;
+  font: inherit;
+  text-align: center;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+@media (hover: hover) and (pointer: fine) {
+  .xray-hint {
+    display: inline;
+  }
+}
+@media (max-width: 860px) {
+  .nav-links .xray-toggle {
+    align-self: flex-start;
+    margin: 12px 0 4px;
+    padding: 8px 12px;
+  }
+}

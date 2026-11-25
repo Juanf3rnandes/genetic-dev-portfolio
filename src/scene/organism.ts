@@ -20,6 +20,9 @@ const MAX_DPR = COARSE ? 1.25 : 1.5;
 const HALO_STRIDE = 4;
 const HALO_SIZE = 5.6; // era 4.5 com todas as partículas
 const HALO_GAIN = 2.5; // compensa a densidade menor
+// Raio-X: linha do feixe fora do canvas (acima = tudo normal; abaixo = tudo raio-x)
+const XRAY_OFF = 1e6;
+const XRAY_ALL = -1e6;
 
 const vertexShader = /* glsl */ `
 uniform float uTime;
@@ -148,6 +151,10 @@ uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform float uHalo;
 uniform float uBloom;
+// Raio-X: acima desta linha (em px do buffer, origem embaixo) as partículas viram "esqueleto"
+uniform float uXrayEdge;
+uniform float uXrayBand;   // meia-largura do brilho do feixe, em px do buffer
+uniform vec3 uXrayCol;
 varying float vDepth;
 varying float vMix;
 varying float vAlpha;
@@ -159,13 +166,21 @@ void main(){
   if (r > 0.5) discard;
   vec3 col = mix(uColorB, uColorA, smoothstep(0.2, 0.8, vMix + (1.0 - vDepth) * 0.3));
   col = mix(col, vTCol, smoothstep(0.3, 1.0, vCv));
+  // Raio-X: acima do feixe, cor de raio-x; perto do feixe, um brilho branco
+  float xr = step(uXrayEdge, gl_FragCoord.y);
+  float bd = (gl_FragCoord.y - uXrayEdge) / uXrayBand;
+  float band = exp(-bd * bd);
+  col = mix(col, uXrayCol, xr);
   if (uHalo > 0.5) {
     // halo: gaussiano largo e fraco, intensidade = gene bloom
     float g = exp(-r * r * 14.0);
-    gl_FragColor = vec4(col, g * vAlpha * ${(0.16 * HALO_GAIN).toFixed(2)} * uBloom);
+    gl_FragColor = vec4(col + band, g * vAlpha * ${(0.16 * HALO_GAIN).toFixed(2)} * uBloom * mix(1.0, 0.3, xr));
   } else {
     float core = smoothstep(0.5, 0.05, r);
-    gl_FragColor = vec4(col * (0.9 + core * 1.1), core * vAlpha);
+    // no raio-x o ponto vira um anel (contorno), como num desenho técnico
+    float ring = smoothstep(0.5, 0.4, r) * smoothstep(0.12, 0.26, r);
+    float a = mix(core, ring * 0.95, xr);
+    gl_FragColor = vec4(col * (0.9 + core * 1.1 * (1.0 - xr)) + band * 1.4, a * vAlpha + band * 0.5 * step(r, 0.5));
   }
 }
 `;
@@ -267,6 +282,9 @@ export class Organism {
         uCvSize: { value: 2 },
         uPaper: { value: 0 },
         uRemap: { value: new THREE.Vector4(1, 1, 0, 0) },
+        uXrayEdge: { value: XRAY_OFF },
+        uXrayBand: { value: 7 },
+        uXrayCol: { value: new THREE.Color(0x5ec8ff) },
       },
     });
     this.haloMaterial = this.material.clone();
@@ -275,7 +293,7 @@ export class Organism {
     this.haloMaterial.uniforms.uCursor.value = this.cursor;
     this.haloMaterial.uniforms.uColorA.value = this.colorA;
     this.haloMaterial.uniforms.uColorB.value = this.colorB;
-    for (const k of ['uCvTime', 'uRemap'] as const) this.haloMaterial.uniforms[k].value = this.material.uniforms[k].value;
+    for (const k of ['uCvTime', 'uRemap', 'uXrayCol'] as const) this.haloMaterial.uniforms[k].value = this.material.uniforms[k].value;
 
     this.halo = new THREE.Points(this.haloGeometry, this.haloMaterial);
     this.halo.frustumCulled = false;
@@ -539,6 +557,25 @@ export class Organism {
     }
     this.raf = requestAnimationFrame(this.loop);
   };
+
+  /**
+   * Raio-X: 'off' = normal, 'on' = tudo em raio-x, número = posição do feixe
+   * (clientY da janela). Acima do feixe as partículas viram contorno azul.
+   */
+  setXray(edge: 'off' | 'on' | number): void {
+    let px = edge === 'off' ? XRAY_OFF : edge === 'on' ? XRAY_ALL : 0;
+    let band = 7;
+    if (typeof edge === 'number') {
+      const r = this.canvas.getBoundingClientRect();
+      const scale = r.height > 0 ? this.renderer.domElement.height / r.height : 1;
+      px = (r.bottom - edge) * scale;
+      band = 7 * scale;
+    }
+    for (const u of [this.material.uniforms, this.haloMaterial.uniforms]) {
+      u.uXrayEdge.value = px;
+      u.uXrayBand.value = band;
+    }
+  }
 
   /** Números para o painel ?debug. */
   stats() {

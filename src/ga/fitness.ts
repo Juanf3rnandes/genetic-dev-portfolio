@@ -20,9 +20,47 @@ export interface FitnessSnapshot {
   heroSeconds: number;
   vote: -1 | 0 | 1;
   score: number;
+  /** contribuição de cada sinal para o score (já com peso), para o Raio-X */
+  parts: FitnessParts;
+}
+
+export interface FitnessParts {
+  time: number;
+  scroll: number;
+  projects: number;
+  contact: number;
+  hero: number;
+  vote: number;
+  floor: number;
+}
+
+export interface FitnessInput {
+  activeSeconds: number;
+  scrollDepth: number;
+  projectClicks: number;
+  contactClicks: number;
+  heroSeconds: number;
+  vote: -1 | 0 | 1;
 }
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+/** Fórmula do fitness, pura (testável). score = clamp(soma das partes, 0, 1). */
+export function scoreParts(i: FitnessInput): { parts: FitnessParts; score: number } {
+  // log para que 10 s valham bem mais que 0 s, mas 90 s não valham 9× 10 s
+  const parts: FitnessParts = {
+    time: 0.25 * clamp01(Math.log1p(i.activeSeconds) / Math.log1p(90)),
+    scroll: 0.2 * clamp01(i.scrollDepth),
+    projects: 0.15 * clamp01(i.projectClicks / 3),
+    contact: 0.1 * clamp01(i.contactClicks),
+    hero: 0.1 * clamp01(i.heroSeconds / 8),
+    vote: 0.3 * i.vote,
+    floor: 0.1, // só existir já é algo
+  };
+  const sum = parts.time + parts.scroll + parts.projects + parts.contact + parts.hero + parts.vote + parts.floor;
+  return { parts, score: clamp01(sum) };
+}
+
 
 export class FitnessTracker {
   private activeMs = 0;
@@ -94,27 +132,15 @@ export class FitnessTracker {
 
   snapshot(): FitnessSnapshot {
     this.flushTime();
-    const activeSeconds = this.activeMs / 1000;
-    const heroSeconds = this.heroMs / 1000;
-    // log para que 10 s valham bem mais que 0 s, mas 90 s não valham 9× 10 s
-    const timeScore = clamp01(Math.log1p(activeSeconds) / Math.log1p(90));
-    const heroScore = clamp01(heroSeconds / 8);
-    const base =
-      0.25 * timeScore +
-      0.2 * this.maxScroll +
-      0.15 * (this.projectClicks / 3) +
-      0.1 * this.contactClicks +
-      0.1 * heroScore;
-    const score = clamp01(base + 0.3 * this.vote + 0.1); // +0.1 de piso: só existir já é algo
-    return {
-      activeSeconds,
+    const input: FitnessInput = {
+      activeSeconds: this.activeMs / 1000,
       scrollDepth: this.maxScroll,
       projectClicks: this.projectClicks,
       contactClicks: this.contactClicks,
-      heroSeconds,
+      heroSeconds: this.heroMs / 1000,
       vote: this.vote,
-      score,
     };
+    return { ...input, ...scoreParts(input) };
   }
 
   destroy(): void {

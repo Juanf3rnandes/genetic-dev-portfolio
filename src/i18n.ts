@@ -35,6 +35,10 @@ const pt = {
   'nav.open': 'Abrir menu',
   'nav.close': 'Fechar menu',
 
+  'xray.toggle': 'Raio-X: ver os bastidores do site',
+  'xray.toggleTitle': 'Raio-X (tecla X): o site mostra como funciona por dentro',
+  'xray.hintPre': 'aperte',
+  'xray.hintPost': 'para ver por dentro',
   'drift.restore': '↺ restaurar',
   'drift.restoreTitle': 'Voltar ao visual original desta variante',
   'drift.label': 'mutação {m}%',
@@ -190,6 +194,10 @@ const en: Record<Key, string> = {
   'nav.open': 'Open menu',
   'nav.close': 'Close menu',
 
+  'xray.toggle': 'X-ray: see how this site works',
+  'xray.toggleTitle': 'X-ray (X key): the site shows how it works inside',
+  'xray.hintPre': 'press',
+  'xray.hintPost': 'to look inside',
   'drift.restore': '↺ restore',
   'drift.restoreTitle': "Back to this variant's original look",
   'drift.label': 'mutation {m}%',

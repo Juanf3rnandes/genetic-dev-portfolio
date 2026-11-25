@@ -4,7 +4,10 @@ import './genes.css';
 import './genes-extra.css';
 import { Evolution, MUTATION_RATE } from './ga/engine';
 import { Drift } from './ga/formation';
-import { driftStep, mulberry32, type Genome } from './ga/genome';
+import { driftStepDetailed, mulberry32, type Genome } from './ga/genome';
+import { bus } from './xray/bus';
+import { initXray } from './xray/trigger';
+import { startVitals } from './xray/vitals';
 import { applyDeco } from './ui/deco';
 import { createStore } from './ga/store';
 import { FitnessTracker } from './ga/fitness';
@@ -56,11 +59,21 @@ function frozenNow(): Set<keyof Genome> {
 }
 const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Web Vitals para o Raio-X: os observadores precisam começar no carregamento
+startVitals();
+
 async function boot(): Promise<void> {
   applyStaticText();
   initNav();
   const evo = new Evolution(createStore());
   await evo.init();
+  bus.emit({
+    kind: 'visit',
+    id: evo.current.id,
+    gen: evo.state.generation,
+    evals: evo.current.evals,
+    pop: evo.state.population.length,
+  });
 
   // 1. a visita começa ESTÁVEL: exatamente o indivíduo escolhido pelo GA
   const rng = mulberry32((Date.now() ^ (Math.random() * 1e9)) >>> 0);
@@ -109,7 +122,18 @@ async function boot(): Promise<void> {
   };
   const milestones = new Set<number>();
   const drift = new Drift((level) => {
-    show(driftStep(shown, level, rng, frozenNow()), level);
+    const frozen = frozenNow();
+    const before = shown;
+    const step = driftStepDetailed(before, level, rng, frozen);
+    show(step.genome, level);
+    bus.emit({
+      kind: 'drift',
+      step: drift.step,
+      level,
+      rate: levelToRate(level),
+      changed: step.changed.map((gene) => ({ gene, from: before[gene], to: step.genome[gene] })),
+      blocked: step.blocked.map((gene) => ({ gene, reason: LOCKED.includes(gene) ? 'locked' : 'onscreen' })),
+    });
     const pct = Math.floor(level * 4) * 25; // avisa em 25%, 50%, 75%, 100%
     if (pct > 0 && !milestones.has(pct)) {
       milestones.add(pct);
@@ -120,6 +144,7 @@ async function boot(): Promise<void> {
     milestones.clear();
     drift.start();
     show(evo.current.genome, 0);
+    bus.emit({ kind: 'restore', id: evo.current.id });
   };
   document.querySelectorAll('[data-drift-reset]').forEach((b) => b.addEventListener('click', restore));
   if (REDUCED_MOTION) drift.stop();
@@ -164,6 +189,7 @@ async function boot(): Promise<void> {
   const feedback = document.querySelector<HTMLElement>('[data-vote-feedback]')!;
   document.querySelector('[data-vote-up]')!.addEventListener('click', () => {
     tracker.setVote(1);
+    bus.emit({ kind: 'vote', id: evo.current.id });
     feedback.textContent = t('vote.feedback', { id: evo.current.id });
     toast(t('vote.toast'));
     renderLive(evo, tracker.snapshot().score);
@@ -178,6 +204,7 @@ async function boot(): Promise<void> {
     restore();
     renderDynamic(evo, null);
     const evolved = evo.state.generation > genBefore;
+    bus.emit({ kind: 'variant', prev, id: evo.current.id, score, evolved, gen: evo.state.generation });
     feedback.textContent = evolved
       ? t('variant.evolved', { g: evo.state.generation, id: evo.current.id })
       : t('variant.next', { prev, s: score.toFixed(2), id: evo.current.id });
@@ -195,6 +222,16 @@ async function boot(): Promise<void> {
   });
 
   evo.onChange(() => renderDynamic(evo, null));
+
+  // Raio-X (tecla X / botão </> / ?xray): o chunk só baixa quando alguém abre
+  initXray({
+    evo,
+    tracker,
+    getOrganism: () => organism,
+    getGenome: () => shown,
+    driftProgress: () => drift.progress,
+    onThemeChange: refreshVizPalette,
+  });
 
   // debug no console: window.gdp.evo.state
   (window as unknown as { gdp: unknown }).gdp = { evo, tracker, organism, organismReady, drift };
