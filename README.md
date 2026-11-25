@@ -42,6 +42,9 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # dist/
 npm run simulate   # evolução com visitantes sintéticos, no terminal
+npm run typecheck  # tipos do site e dos testes
+npm test           # testes unitários (node:test, sem dependência extra)
+npm run test:e2e   # testes de ponta a ponta (Playwright)
 ```
 
 Edite o conteúdo em `src/content.ts`. O currículo baixado pelo site é o PDF em
@@ -63,6 +66,31 @@ No GitHub Pages, defina a variável `VITE_GA_ENDPOINT` em *Settings → Secrets 
 
 O workflow em `.github/workflows/deploy.yml` publica no GitHub Pages a cada push na `main`
 (ative Pages com source "GitHub Actions" nas configurações do repositório).
+
+## Raio-X (modo engenharia)
+
+Aperte **X** (ou o botão `</>` na navegação, ou abra com `?xray`) e o site mostra os
+próprios bastidores. Um feixe de scanner desce pela tela: acima dele o site vira planta
+e as partículas do organismo viram contorno (no shader). Depois aparecem:
+
+- **estrutura**: cada componente marcado com o gene que o controla e o arquivo onde é
+  feito; ao passar o mouse, a explicação e o link para o código.
+- **rede**: as requisições desta visita (Resource Timing) e os Web Vitals medidos na
+  hora (LCP, CLS, INP), sem biblioteca.
+- **render**: fps, ms por frame, draw calls, partículas, resolução e memória.
+- **genoma**: o diário do algoritmo genético ao vivo (o que mutou, o que ficou
+  congelado e por quê) e o fitness do visitante, sinal por sinal.
+
+Esc ou X fecha. Com `prefers-reduced-motion`, abre e fecha sem animação.
+
+| Arquivo | O que faz |
+| --- | --- |
+| `src/xray/trigger.ts` | tecla, botão e `?xray`; baixa o resto sob demanda |
+| `src/xray/bus.ts` | diário do GA (gravado desde o carregamento, só dados) |
+| `src/xray/vitals.ts` | observadores de LCP, CLS e INP |
+| `src/xray/xray.ts`, `xray.css` | o modo em si (chunk separado de ~10 kB gzip + 3 kB de CSS) |
+| `src/xray/format.ts` | funções puras de formatação e resumo da rede (testadas) |
+| `src/xray/annotations.ts` | o que a aba estrutura marca e explica |
 
 ## Debug
 
