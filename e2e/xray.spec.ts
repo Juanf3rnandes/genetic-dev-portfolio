@@ -45,12 +45,19 @@ test('Raio-X: X abre com a varredura, mostra os bastidores e X fecha', async ({ 
   await expect(root).toHaveClass(/is-ready/);
   await expect(page.locator('.xr-badge')).toHaveText('RAIO-X');
 
-  // dados reais nos painéis
+  // enxuto: só a barra com o resumo e os contornos; nenhum painel aberto
+  await expect(page.locator('.xr-status')).toContainText('LCP');
+  await expect(page.locator('.xr-box:not([hidden])').first()).toBeVisible();
+  await expect(page.locator('.xr-panel:visible')).toHaveCount(0);
+
+  // dados reais nos painéis, um por vez
+  await page.locator('.xr-tab[data-tab="net"]').click();
   await expect(page.locator('.xr-row').first()).toBeVisible();
   expect(await page.locator('.xr-row').count()).toBeGreaterThan(2);
   await expect(page.locator('.xr-vital')).toHaveCount(3);
+  await page.locator('.xr-tab[data-tab="genome"]').click();
+  await expect(page.locator('.xr-panel[data-panel="net"]')).toBeHidden();
   await expect(page.locator('.xr-log .xr-l').first()).toBeVisible();
-  await expect(page.locator('.xr-box:not([hidden])').first()).toBeVisible();
   await expect(page.locator('.xr-bars .xr-bar-row')).toHaveCount(6);
 
   // mexer na página faz o algoritmo agir; o diário registra
@@ -117,23 +124,24 @@ test('Raio-X por ?xray, abas e troca de idioma', async ({ page, isMobile }) => {
   await ready(page, '/?lang=pt&xray');
   await expect(page.locator('html')).toHaveClass(/xr-on/, { timeout: 5_000 });
 
-  // abas ligam/desligam painéis
+  // abas: um painel por vez, começando com nenhum; clicar no aberto fecha
   const net = page.locator('.xr-panel[data-panel="net"]');
+  const render = page.locator('.xr-panel[data-panel="render"]');
   const netTab = page.locator('.xr-tab[data-tab="net"]');
-  if (isMobile) {
-    // celular: uma gaveta por vez, começa no genoma
-    await expect(net).toBeHidden();
-    await netTab.click();
-    await expect(net).toBeVisible();
-    await expect(page.locator('.xr-panel[data-panel="genome"]')).toBeHidden();
-  } else {
-    await expect(net).toBeVisible();
-    await netTab.click();
-    await expect(net).toBeHidden();
-    await expect(netTab).toHaveAttribute('aria-pressed', 'false');
-    await netTab.click();
-    await expect(net).toBeVisible();
-  }
+  await expect(net).toBeHidden();
+  await netTab.click();
+  await expect(net).toBeVisible();
+  await expect(netTab).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.xr-tab[data-tab="render"]').click();
+  await expect(render).toBeVisible();
+  await expect(net).toBeHidden();
+  await page.locator('.xr-tab[data-tab="render"]').click();
+  await expect(render).toBeHidden();
+  // estrutura liga/desliga os contornos
+  await page.locator('.xr-tab[data-tab="structure"]').click();
+  await expect(page.locator('.xr-boxes')).toBeHidden();
+  await page.locator('.xr-tab[data-tab="structure"]').click();
+  await expect(page.locator('.xr-boxes')).toBeVisible();
 
   // troca de idioma com o Raio-X aberto (o botão de idioma fica sob a barra; clique programático)
   await page.locator('[data-lang-toggle]').dispatchEvent('click');
@@ -150,7 +158,10 @@ test('Raio-X no celular: botão no menu', async ({ page, isMobile }) => {
   await page.locator('[data-xray-toggle]').click();
   await expect(page.locator('[data-nav-toggle]')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('html')).toHaveClass(/xr-on/, { timeout: 5_000 });
-  await expect(page.locator('.xr-panels')).toBeVisible();
+  await expect(page.locator('.xr-bar')).toBeVisible();
+  await page.locator('.xr-tab[data-tab="genome"]').click();
+  await expect(page.locator('.xr-panel[data-panel="genome"]')).toBeVisible();
+  await expect(page.locator('.xr-close')).toHaveAttribute('aria-label', 'fechar');
   // sem rolagem lateral com o Raio-X aberto
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);

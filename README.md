@@ -71,10 +71,12 @@ O workflow em `.github/workflows/deploy.yml` publica no GitHub Pages a cada push
 
 Aperte **X** (ou o botão `</>` na navegação, ou abra com `?xray`) e o site mostra os
 próprios bastidores. Um feixe de scanner desce pela tela: acima dele o site vira planta
-e as partículas do organismo viram contorno (no shader). Depois aparecem:
+e as partículas do organismo viram contorno (no shader). Depois ficam só uma barra fina,
+com o resumo em uma linha (LCP · CLS · INP · fps · geração · fitness), e os contornos dos
+componentes. Os painéis abrem um por vez, pelas abas:
 
-- **estrutura**: cada componente marcado com o gene que o controla e o arquivo onde é
-  feito; ao passar o mouse, a explicação e o link para o código.
+- **estrutura**: o contorno de cada componente com o nome do elemento; ao passar o mouse,
+  os genes que o controlam, a explicação e o link para o arquivo.
 - **rede**: as requisições desta visita (Resource Timing) e os Web Vitals medidos na
   hora (LCP, CLS, INP), sem biblioteca.
 - **render**: fps, ms por frame, draw calls, partículas, resolução e memória.
@@ -88,7 +90,7 @@ Esc ou X fecha. Com `prefers-reduced-motion`, abre e fecha sem animação.
 | `src/xray/trigger.ts` | tecla, botão e `?xray`; baixa o resto sob demanda |
 | `src/xray/bus.ts` | diário do GA (gravado desde o carregamento, só dados) |
 | `src/xray/vitals.ts` | observadores de LCP, CLS e INP |
-| `src/xray/xray.ts`, `xray.css` | o modo em si (chunk separado de ~10 kB gzip + 3 kB de CSS) |
+| `src/xray/xray.ts`, `xray.css` | o modo em si (chunk separado de ~10 kB gzip + 2,3 kB de CSS) |
 | `src/xray/format.ts` | funções puras de formatação e resumo da rede (testadas) |
 | `src/xray/annotations.ts` | o que a aba estrutura marca e explica |
 

@@ -5,8 +5,6 @@ import { getLang } from '../i18n';
 const pt = {
   region: 'Raio-X: modo engenharia',
   badge: 'RAIO-X',
-  subtitle: 'modo engenharia · o site mostrando como funciona',
-  scanning: 'EXPONDO A ESTRUTURA',
   close: 'fechar',
   closeHint: 'X para sair',
   announceOn: 'Raio-X ligado: o site está mostrando os bastidores. Tecla X ou Esc para sair.',
@@ -63,8 +61,6 @@ type Key = keyof typeof pt;
 const en: Record<Key, string> = {
   region: 'X-ray: engineering mode',
   badge: 'X-RAY',
-  subtitle: 'engineering mode · the site showing how it works',
-  scanning: 'EXPOSING THE STRUCTURE',
   close: 'close',
   closeHint: 'X to exit',
   announceOn: 'X-ray on: the site is showing its internals. Press X or Esc to exit.',

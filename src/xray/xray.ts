@@ -5,7 +5,10 @@
  * (camada com mix-blend-mode recortada por clip-path) e as partículas do
  * organismo viram contorno (uniform no shader). Quando o feixe passa do fim, a
  * camada temporária sai e entra o tema "planta" barato (variáveis CSS em
- * html.xr-on), as caixas dos componentes se desenham e os painéis entram.
+ * html.xr-on) e os contornos dos componentes aparecem.
+ *
+ * Minimalista de propósito: uma barra fina com as métricas principais em uma
+ * linha; os painéis (rede, render, genoma) só abrem quando alguém pede, um por vez.
  * Saída: o feixe sobe e devolve o site. Com prefers-reduced-motion, corte seco.
  *
  * Custo enquanto aberto: painéis atualizam 2×/s (só os visíveis); as caixas só
@@ -31,13 +34,11 @@ const FINE_HOVER = matchMedia('(hover: hover) and (pointer: fine)');
 
 const OPEN_MS = 1150;
 const CLOSE_MS = 480;
-const FLASH_MS = 120;
 const TICK_MS = 500;
 const LOG_MAX = 80;
 /** abaixo da barra do Raio-X: rótulos de caixas mais altas que a tela grudam aqui */
 const PIN_TOP = 78;
-/** variação mínima do fitness para virar linha no diário */
-const FIT_LOG_STEP = 0.05;
+
 
 const easeInOutCubic = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
@@ -53,7 +54,6 @@ interface BoxRef {
   target: Element | null;
   box: HTMLDivElement;
   label: HTMLSpanElement;
-  meta: HTMLSpanElement;
   rect: DOMRect | null;
 }
 
@@ -69,7 +69,7 @@ class XrayUI {
   private boxesLayer = h('div', 'xr-boxes');
   private tip = h('div', 'xr-tip');
   private live = h('p', 'xr-sr');
-  private hudBar = h('i');
+  private status = h('span', 'xr-status');
   private boxes: BoxRef[] = [];
   private panels = new Map<Panel, HTMLElement>();
   private tabs = new Map<'structure' | Panel, HTMLButtonElement>();
@@ -89,7 +89,6 @@ class XrayUI {
   private edge = 0;
   private tipFor: BoxRef | null = null;
   private tipHide = 0;
-  private lastFitLogged = -1;
   private cleanups: (() => void)[] = [];
 
   constructor(private ctx: XrayContext) {
@@ -97,27 +96,17 @@ class XrayUI {
     this.root.dataset.xray = '';
     this.scan.setAttribute('aria-hidden', 'true');
     this.beam.setAttribute('aria-hidden', 'true');
-    this.beam.append(h('i'), h('span', 'xr-beam-tag', 'SCAN'));
+    this.beam.append(h('i'));
     this.boxesLayer.setAttribute('aria-hidden', 'true');
     this.tip.setAttribute('role', 'tooltip');
     this.tip.hidden = true;
     this.live.setAttribute('aria-live', 'polite');
-    const flash = h('div', 'xr-flash');
-    flash.setAttribute('aria-hidden', 'true');
-    const grid = h('div', 'xr-grid');
-    grid.setAttribute('aria-hidden', 'true');
 
-    const hud = h('div', 'xr-hud mono');
-    hud.setAttribute('aria-hidden', 'true');
-    const hudTrack = h('div', 'xr-hud-track');
-    hudTrack.append(this.hudBar);
-    hud.append(h('span', '', ''), hudTrack);
-    hud.firstElementChild!.setAttribute('data-xs', 'scanning');
-
-    this.root.append(grid, this.boxesLayer, this.beam, flash, hud, this.buildBar(), this.buildPanels(), this.tip, this.live);
+    this.root.append(this.boxesLayer, this.beam, this.buildBar(), this.buildPanels(), this.tip, this.live);
     this.buildBoxes();
 
-    this.shown = WIDE.matches ? new Set<Panel>(['net', 'render', 'genome']) : new Set<Panel>(['genome']);
+    // nenhum painel aberto de saída: o resumo na barra já conta o essencial
+    this.shown = new Set<Panel>();
     this.applyTabs();
     this.relabel();
   }
@@ -127,9 +116,9 @@ class XrayUI {
   private buildBar(): HTMLElement {
     const bar = h('header', 'xr-bar mono');
     const left = h('div', 'xr-bar-left');
-    left.append(h('span', 'xr-badge'), h('span', 'xr-sub'));
-    left.firstElementChild!.setAttribute('data-xs', 'badge');
-    left.lastElementChild!.setAttribute('data-xs', 'subtitle');
+    const badge = h('span', 'xr-badge');
+    badge.dataset.xs = 'badge';
+    left.append(badge);
 
     const tabs = h('div', 'xr-tabs');
     tabs.setAttribute('role', 'toolbar');
@@ -145,9 +134,15 @@ class XrayUI {
 
     const closeBtn = h('button', 'xr-close');
     closeBtn.type = 'button';
-    closeBtn.dataset.xs = 'closeHint';
+    // texto no desktop ("X para sair"), só ✕ no celular; o nome acessível é sempre "fechar"
+    const wide = h('span', 'xr-close-wide');
+    wide.dataset.xs = 'closeHint';
+    const narrow = h('span', 'xr-close-narrow', '✕');
+    narrow.setAttribute('aria-hidden', 'true');
+    closeBtn.append(wide, narrow);
     closeBtn.addEventListener('click', () => close());
-    bar.append(left, tabs, closeBtn);
+    this.status.setAttribute('aria-hidden', 'true'); // os mesmos números estão nos painéis
+    bar.append(left, tabs, this.status, closeBtn);
     return bar;
   }
 
@@ -194,16 +189,16 @@ class XrayUI {
       const box = h('div', `xr-box${a.hot ? ' hot' : ''}`);
       box.style.setProperty('--i', String(i));
       const label = h('span', 'xr-box-label');
-      const meta = h('span', 'xr-box-meta');
-      box.append(label, meta);
+      box.append(label);
       this.boxesLayer.append(box);
-      this.boxes.push({ a, target: null, box, label, meta, rect: null });
+      this.boxes.push({ a, target: null, box, label, rect: null });
     });
   }
 
   /** Textos fixos (troca de idioma refaz). */
   relabel(): void {
     this.root.setAttribute('aria-label', s('region'));
+    this.root.querySelector('.xr-close')?.setAttribute('aria-label', s('close'));
     this.root.querySelectorAll<HTMLElement>('[data-xs]').forEach((el) => {
       el.textContent = s(el.dataset.xs as StringKey);
     });
@@ -220,13 +215,9 @@ class XrayUI {
   private onTab(id: 'structure' | Panel): void {
     if (id === 'structure') {
       this.structureOn = !this.structureOn;
-    } else if (WIDE.matches) {
-      if (this.shown.has(id)) this.shown.delete(id);
-      else this.shown.add(id);
     } else {
-      // tela estreita: uma gaveta por vez
-      const only = this.shown.has(id) && this.shown.size === 1;
-      this.shown = only ? new Set() : new Set([id]);
+      // um painel por vez; clicar no aberto fecha
+      this.shown = this.shown.has(id) ? new Set() : new Set([id]);
     }
     this.applyTabs();
     this.refresh(true);
@@ -257,11 +248,7 @@ class XrayUI {
       this.appendLog(e, true);
       this.scrollLog();
     });
-    const onWide = () => {
-      if (!WIDE.matches && this.shown.size > 1) this.shown = new Set(['genome']);
-      this.applyTabs();
-      this.refresh(true);
-    };
+    const onWide = () => this.refresh(true);
     WIDE.addEventListener('change', onWide);
     this.cleanups.push(
       () => window.removeEventListener('scroll', onScroll),
@@ -318,7 +305,6 @@ class XrayUI {
       const k = Math.min(1, (now - t0) / dur);
       const y = from + (to - from) * easeInOutCubic(k);
       this.setEdge(y); // lê antes de escrever: ver setEdge
-      this.hudBar.style.transform = `scaleX(${Math.min(1, Math.max(0, y / span)).toFixed(3)})`;
       if (k < 1) this.beamRaf = requestAnimationFrame(step);
       else done();
     };
@@ -339,6 +325,7 @@ class XrayUI {
       this.updateBoxLabels();
       this.layout();
     }
+    this.renderStatus();
     if (this.shown.has('net') && (full || this.ticks % 4 === 0)) this.renderNet();
     if (this.shown.has('render')) this.renderRender();
     if (this.shown.has('genome')) this.renderGenome();
@@ -378,20 +365,30 @@ class XrayUI {
     }
   }
 
+  /** Na caixa, só o nome do elemento; genes, explicação e arquivo ficam na dica. */
   private updateBoxLabels(): void {
-    const g = this.ctx.getGenome();
-    const stats = this.ctx.getOrganism()?.stats();
     for (const b of this.boxes) {
       const el = b.target?.isConnected ? b.target : document.querySelector(b.a.selector);
-      const genes = b.a.genes.map((k) => `${k}=${formatGene(k, g[k])}`).join(' · ');
-      const label = `${el ? tagLabel(el) : b.a.selector}${genes ? `  ${genes}` : ''}`;
+      const label = el ? tagLabel(el).slice(1, -1) : b.a.selector;
       if (b.label.textContent !== label) b.label.textContent = label;
-      let meta = b.a.src;
-      if (b.a.selector === '#organism' && stats) {
-        meta = `${stats.particles.toLocaleString(getLang() === 'pt' ? 'pt-BR' : 'en-US')} pts · ${stats.drawCalls} draw calls · ${stats.running ? `${stats.fps} fps` : '⏸'}`;
-      }
-      if (b.meta.textContent !== meta) b.meta.textContent = meta;
     }
+  }
+
+  /** Uma linha na barra: o essencial de cada painel, sem abrir nenhum. */
+  private renderStatus(): void {
+    const vit = readVitals();
+    const o = this.ctx.getOrganism()?.stats() ?? null;
+    const fps = o?.running ? o.fps : this.pageFps;
+    const parts = [
+      `LCP ${vit.lcp === null ? '—' : `${(vit.lcp / 1000).toFixed(2)}s`}`,
+      `CLS ${vit.cls === null ? '—' : vit.cls.toFixed(2)}`,
+      `INP ${vit.inp === null ? '—' : `${Math.round(vit.inp)}ms`}`,
+      `${fps} fps`,
+      `g${this.ctx.evo.state.generation}`,
+      `fit ${this.ctx.tracker.snapshot().score.toFixed(2)}`,
+    ];
+    const text = parts.join('  ·  ');
+    if (this.status.textContent !== text) this.status.textContent = text;
   }
 
   private renderNet(): void {
@@ -543,12 +540,6 @@ class XrayUI {
     }
     fit.querySelector<HTMLElement>('.xr-bars')!.replaceChildren(frag);
     fit.querySelector<HTMLElement>('.xr-note')!.textContent = s('fit.note');
-
-    // registra no diário quando o fitness muda de forma perceptível
-    if (Math.abs(snap.score - this.lastFitLogged) >= FIT_LOG_STEP) {
-      this.lastFitLogged = snap.score;
-      bus.emit({ kind: 'fitness', score: snap.score });
-    }
   }
 
   // ------------------------------------------------------------------ diário
@@ -633,16 +624,17 @@ class XrayUI {
     this.tipFor = b;
     b.box.classList.add('focus');
     this.boxes.forEach((o) => o !== b && o.box.classList.remove('focus'));
-    const a = h('a', 'xr-tip-link', s('tip.open'));
+    const a = h('a', 'xr-tip-link', `${b.a.src} ↗`);
+    a.title = s('tip.open');
     a.href = REPO + b.a.src;
     a.target = '_blank';
     a.rel = 'noopener';
-    this.tip.replaceChildren(
-      h('span', 'xr-tip-label', b.label.textContent ?? ''),
-      h('p', '', b.a.desc[getLang()]),
-      h('code', '', b.a.src),
-      a,
-    );
+    const g = this.ctx.getGenome();
+    const genes = b.a.genes.map((k) => `${k}=${formatGene(k, g[k])}`).join(' · ');
+    const parts: HTMLElement[] = [h('span', 'xr-tip-label', `<${b.label.textContent ?? ''}>`)];
+    if (genes) parts.push(h('span', 'xr-tip-genes', genes));
+    parts.push(h('p', '', b.a.desc[getLang()]), a);
+    this.tip.replaceChildren(...parts);
     this.tip.hidden = false;
   }
 
@@ -719,10 +711,8 @@ function open(ctx: XrayContext): void {
   }
   html.classList.add('xr-scanning');
   ui.root.classList.remove('is-ready');
-  ui.root.classList.add('is-scanning', 'is-flash');
-  const u = ui;
-  window.setTimeout(() => u.root.classList.remove('is-flash'), FLASH_MS + 160);
-  u.animateBeam(window.innerHeight + 8, OPEN_MS, finishOpen);
+  ui.root.classList.add('is-scanning');
+  ui.animateBeam(window.innerHeight + 8, OPEN_MS, finishOpen);
 }
 
 export function close(): void {
